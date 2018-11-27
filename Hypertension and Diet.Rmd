@@ -1,0 +1,507 @@
+---
+title: "Case-study-hypertension"
+author: "Hanchao Zhang, M.S."
+output:
+  html_document:
+    md_extensions: -startnum
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+
+#if(!require("nhanesA")){
+#  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone" ))
+#}
+```
+
+
+
+
+## Motivation
+
+
+The pathology of hypertension has been found with several medical studies, salt intaking is one of the most important risk factors for having hypertension. Instead of seeing the association of hypertension and salt intake, we focus on other factors that might have the impact on the odds of having hypertension.
+
+Moreover, our case study also introduced the logistic regression and survey-weighted logistic regression, focusing on the difference of the two models and obviously survey-weighted logistic regression would be our choice of the model since we are using the survey data and it is weighted.
+
+
+
+
+## What is the Data
+
+The National Health and Nutrition Examination Survey (NHANES) is a program of studies designed to assess the health and nutritional status of adults and children in the United States. The survey started in the 1970’s and became a continuous program since 1999. A large portion of the data is publicly available at https://wwwn.cdc.gov/nchs/nhanes/default.aspx. The R package nhanesA (https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html) may make it easier to explore the NHANES data for surveys conducted since 1999. Additionally, the linked mortality data are available for NHANES III and later surveys at this site: https://www.cdc.gov/nchs/data-linkage/mortality-public.htm, which will be useful for exploring questions related to survival outcomes of the survey participants.
+
+The data is downloaded by NYC NHANES (a local version of NHANES), The NYC Health and Nutrition Examination Survey (NYC HANES), modeled on the National Health and Nutrition Examination Survey, is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI).(cited from http://nychanes.org/data/)
+
+
+
+## Data Preprocessing
+
+### Load packages
+```{r, warning=F, message=F}
+if(!require("nhanesA")){
+  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone", 'survey' ))
+}
+library(tidyverse)
+library(knitr)
+library(sas7bdat)
+library(tableone)
+library(knitr)
+library(kableExtra)
+library(survey)
+library(broom)
+library(multcomp)
+```
+
+
+### Read the Data from csv File
+
+
+
+```{r}
+directory <- getwd()
+directory
+dat <- read.sas7bdat(paste0(directory,'/dat.sas7bdat'))
+```
+
+### Select the Variables that You're Interesed In
+
+
+For the covariates of interest, we check the related paper and selected 11 covariates that have a potential association with hypertension according to paper reviews. The variables can also be chosen by univariate analysis in the whole data set with adjusted family error rates. We will talk about the way of doing that in the other project.
+
+
+```{r}
+hypertension_DF <- data.frame(
+id = dat$KEY,
+age = dat$SPAGE,
+race = dat$DMQ_14_1,
+gender = dat$GENDER,
+born = dat$US_BORN,
+diet = dat$DBQ_1,
+income = dat$INC20K,
+diabetes = dat$DX_DBTS,
+bmi = dat$BMI,
+hypertension = dat$BPQ_2,
+drink = dat$ALQ_1_UNIT,
+smoking = dat$SMOKER3CAT,
+surveyweight = dat$CAPI_WT
+)
+```
+
+### Adjust the Data Type
+
+
+After you get you clean data set, adjusting the type of the covariate is very important, and you should do before doing any analysis in R.
+
+Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
+
+For example, in ` lm()` and ` glm()`, the function will automatically make the factor to categorical data and if you didn't change the type of the data, you will have the wrong result which identify the categorical variables to continous variables
+
+There are several ways that you can have a glance at your data. Plotting the data is an excellent way to understand your data at first sight.
+
+
+
+There are several ways that you can have a glance at your data. What I would recommend you is using the summary and str functions to see the data summary
+
+
+
+
+
+```{r}
+## check the original data type
+str(hypertension_DF)
+```
+
+The ` str()` function will return you the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data.
+
+
+
+
+
+```{r}
+## find a charactor of the data for further adjustment
+summary(hypertension_DF)
+```
+
+
+
+
+From the two figures above, we can tell that there are some categorical variables like race, gender, born place, diet, neighborhood incomes, income, diabetes, BMI, drink, and smoke.
+
+So, the first step, we need to, instead of using the numeric class of it, change it to factors.
+
+We can, of course, change it one by one. However, the reason that we plot the data and look at the summary of it first is that it can give us some information so that we can process the data easier.
+
+A better way to change the type of data especially when you have lots of covariates is to set a threshold according to the character of the data. Here, we can see that the mean of the categorical data cannot exceed 5. So, we set 5 as the threshold and for any variable with mean smaller than 5, we set it to factor, else, we maintain its type.
+
+
+
+
+```{r}
+factorvars <- NULL
+## if the mean value of the data is smaller than 4, 
+## it means these data is very likely to be categorical data, adjust it to factor.
+for (i in 2:length(hypertension_DF)) {
+  hypertension_DF[hypertension_DF[,i] == 'NaN',i] <- NA
+  if( mean(hypertension_DF[,i], na.rm = T) < 5 ){
+    ## For NaN, change it to missing value first
+    #hypertension_DF[hypertension_DF[,i] == 'NaN',i] <- NA
+    hypertension_DF[,i] <- as.factor(hypertension_DF[,i])
+    ## Record the categorical data
+    factorvars[i] <- names(hypertension_DF)[i]
+  }
+}
+## check the changed data type
+str(hypertension_DF)
+```
+
+### Rename the Levels of the Factor
+
+As the str function shows, we now have our categorical variable in position. However, it's kind of hard for us to tell what the different levels represent in categorical variables. So we can rename the level and make it easier to read and analyze later.
+
+
+
+```{r}
+hypertension_DF$race <- as.factor(hypertension_DF$race)
+levels(hypertension_DF$race) <- c('White', 'Black/African American', 'Indian (American)/Alaska Native', 'Native Hawaiian/Other Pacific Islander', 'Asian', 'Some Other Race')
+levels(hypertension_DF$gender) <- c('Male', 'Female')
+levels(hypertension_DF$born) <- c('US-born', 'Other')
+levels(hypertension_DF$diet) <- c('Excellent', 'Very good', 'Good', 'Fair', 'Poor')
+levels(hypertension_DF$income) <- c('Less than $20,000','$20,000 - $39,999','$40,000 - $59,999','$60,000 - $79,999','$80,000 - $99,999','$100,000 or more')
+levels(hypertension_DF$diabetes) <- c('Diabetic dx', 'Diabetic but no dx', 'Not diabetic')
+levels(hypertension_DF$hypertension) <- c('Yes', 'No')
+levels(hypertension_DF$drink) <- c('Weekly', 'Monthly', 'Yearly')
+levels(hypertension_DF$smoking) <- c('Weekly', 'Monthly', 'Yearly')
+```
+
+
+
+
+### Check Normality of the Numeric Variables
+
+
+After changing the dataset, we are now, having a clean dataset. To explore the data more, we need to do some analysis on the data and to check some other features of them.
+
+One thing that we want to do first is to check the normality of your continuous data because we have to decide what test statistics to use. For example, we use the t-test to check the difference of the normal distribution and Wilcoxon test to check the difference of non-normal distribution.
+
+
+```{r}
+par(mfrow = c(1,2))
+for (i in names(hypertension_DF[,-ncol(hypertension_DF)])) {
+  if( is.numeric(hypertension_DF[,i] ) ){
+    qqnorm(hypertension_DF[,i], main = i)
+    qqline(hypertension_DF[,i])
+  }
+}
+```
+
+
+Since the age and BMI are not normally distributed, we should use the non-parametric(Wilcoxon) method to test the differences.
+
+
+## Survey Weighted Data
+
+
+So what model can we use in our case?
+
++ binary outcomes
+
+You might think of logistic regression. Yes, you're pretty close already. However, think of the nature of our dataset. It's a data obtained from survey, and there is an important point to consider for analysis of survey data.
+
+
+
+
+### What is Survey Weighted Data
+
+It possible and indeed often happens to a perfectly designed sampling plan ends up with too many samples in a category. For example, too many women and not enough men, or too many white and not enough other races or both. Data weighting make sense for this kind of data. If we want the data to reflect the whole population, instead of counting the weight of each data point as one, we weight the data so that the sample we have can better reflect the entire community.
+
+
+
+### What is the Weight of Data
+
+
+Assuming that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to know their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Of course not. That's why we have to weight the observation so that we can make the sample better represent the population. The way of calculating the weight is:
+
+
+
+$$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
+$$Male~Weight = \frac{20/25}{1/25} = 20$$
+$$Male~Weight = \frac{5/25}{4/25} = 1.25$$
+
+
+When we have multiple strata on the data, it might be troublesome to calculate the weight. However, for most of the survey data, the weight is calculated and included in the dataset. In our case study, the weight is calculated and we can simply apply the weight in the survey-weighted logistic regression.
+
+
+### What is Finite Population Correction Factor
+
+$$FPC = (\frac{N-n}{N-1})^{\frac{1}{2}}$$
++ N = population size
++ n = sample size
+
+
+The finite population correction (fpc) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. It may not be appropriate if the target of inference is the process generating the data rather than the statistics of a particular finite population.
+
+
+The Finite Population Correction Factor (FPC) is used when you sample without replacement from more than 5% of a finite population. It’s needed because under these circumstances, the Central Limit Theorem doesn’t hold and the standard error of the estimate (e.g. the mean or proportion) will be too big. In basic terms, the FPC captures the difference between sampling with replacement and sampling without replacement.
+
+
+Most real-life surveys involve finite populations sampled without replacement. For example, you might perform a telephone survey of 10,000 people; once a person has been called, they won’t be called again. (https://www.statisticshowto.datasciencecentral.com/finite-population-correction-factor/)
+
+
+
+
+```{r}
+fpc <- ((5827719 - 1527)/(5827719-1))^0.5
+fpc
+```
+
+
+### Fit the survey weighted logistic regression
+
+There is a function ` svydesign()` in R package ` survey`. The function is used to specify a survey design. Some arguments that is useful in our analysis.
+
++ ids: Formula or data frame specifying cluster ids from largest level to smallest level, ~0 or ~1 is a formula for no clusters.
+
++ data: Data frame to look up variables in the formula arguments, or database table name
+
++ weights = Formula or vector specifying sampling weights as an alternative to ` prob`
+
++ fpc: Finite population correction
+
+
+```{r}
+hypertension <- hypertension_DF$hypertension
+hypertension <- ifelse(hypertension == 'No',0,1)
+hypertension_design <- svydesign(
+  id = ~1,
+  data = hypertension_DF[,-c(1,13)],
+  weights = ~hypertension_DF$surveyweight,
+  fpc = ~rep(fpc, nrow(hypertension_DF))
+)
+
+
+```
+
+
+
+
+## Exploratory Data Analysis
+
+
+### Survey Weighted Demographic table
+
+
+The ` Createtableone` function from ` TableOne` package offers a survey-weighted version of demographic table. We can use the ` svyCreateTableOne` function output the demographic table for survey weighted data after the design was set up.
+
+
+
+
+
+
+```{r, results='hide'}
+svyCreateTableOne(data = hypertension_design, strata = 'hypertension', factorVars = factorvars) %>%
+  print(nonnormal = c('age','BMI')) -> tblprint2
+tblprint2
+tblprint2[,4][c(2,3,10:12,18,25,29:31,35)] <- c('Wilcoxon', 'Chi-sq', 'Chi-sq', 'Chi-sq', 'Chi-sq', 'Chi-sq', 'Chi-sq', 'T-test', 'Chi-sq','Chi-sq', 'Chi-sq')
+tblprint2[,1] == 'hypertension'
+```
+
+
+```{r}
+kable(tblprint2 [-c(30,39),], "html", caption = "Stritified by hypertension", booktabs = T) %>%
+  kable_styling('responsive') %>%
+  add_indent(c(5:9,13:17,19:24,26:28,31:33,35:37))
+```
+
+
+
+
+
+
+
+
+### Eorrbarplots, boxplots and residual plots
+
+
+
+Before doing those plots, we need to fit the model with the survey weighted data using ` svyglm()` function from the ` suvery` package.
+
+It's similary to fit a normal logistic regression, the only difference is that instead of using the orignal data set in the ` data` argument, you should input the object from the ` svydesign()` to the ` design` argument in the function
+
+
+```{r}
+hypertension_design$variables$hypertension <- ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no = 1)
+
+fit1 <- svyglm(hypertension ~ diet, design = hypertension_design)
+
+
+```
+
+
+After fitting the model, we can use our wrapper functions to do the data visualization and get some summary table that might be useful
+
+
+
+As a data analyst, you probably will encounter this situation, writing similar codes for printing a table or visualization of your data. It can be quite annoying, and wrapper function can help you better solve you the trouble.
+
+You can write a function that as general as possible so that it can solve as more problems as you wish.
+
+There is something that you can do:
+
++ write your function and test your function for multiple data set
+
++ save your function as an R file
+
++ get your function from the directory you used to save the R file
+
+And then, your function will appear, you can also save multiple functions in an R file, after quoting that R file, you will gain access for all the functions in that file
+
+
+
+```{r}
+source(paste0(directory, "/svyplot.R"))
+```
+
+```{r}
+svyplot(fit1, output = 'table')
+
+```
+
+The table shows the number of people, the odds, and the standard deviance of having hypertension for each level.
+
+Based on the table above, we can visualize it with errorbarplot and boxplot
+
+```{r}
+svyplot(fit1, output = 'errorbar')
+
+
+```
+
+
+
+
+## Data analysis
+
+
+
+#### ANOVA and PostHoc Analysis
+
+
+We can use the glht function from the multicomp package to do the PostHoc analysis. There're several ways to address the K matrix also known as comparision matrix. The easiest way is use Tukey to do the pairedwise comparision.
+
+
+
+
+```{r}
+glht(fit1, linfct = mcp(diet = "Tukey")) %>%
+  summary() -> tbl_ph
+
+tbl_ph
+```
+
+
+The ` turkey` returns us the pairedwise comparision. However, what if we have too many levels or we want to focus on some of the specific comparisons? 
+
+The other way is to design our matrix of linear functions (` linfct`) in the function
+
+First, we can take a look on the ` linfct` in ` turkey`
+
+
+```{r}
+tbl_ph$linfct
+```
+
+
+$$K \times Y = C   \times X$$
+
+The linfct is the K matrix before the Y, the intercept represent the level of Excellent in our case, and if we want to compare any level with excellent, we can just input 1 at that level, if we want to compare other two levels except the reference level, we can set 1 and -1 at those two levels.
+
+let's try the K matrix campring reference level with all other levels
+
+```{r}
+K <- rbind(
+  "Excellent - Good" = c(0,0,1,0,0),
+  "Excellent - Fair" = c(0,0,0,1,0),
+  "Excellent - Poor" = c(0,1,0,0,1)
+)
+```
+
+
+```{r}
+glht(fit1, linfct = mcp(diet = K)) %>%
+  summary() -> tbl1
+tbl1
+```
+
+
+Even more, we can design a matrix that compare the average of some values
+
+
+```{r}
+K <- rbind(
+
+  "Ave. of Very good and good - Poor" = c(0,0.5,0.5,0,-1)
+  )
+
+```
+
+
+```{r}
+glht(fit1, linfct = mcp(diet = K)) %>%
+  summary() -> tbl2
+tbl2
+```
+
+
+
+
+## Summary of the results
+
+
+```{r}
+tbl1 %>%
+  tidy() -> tbl1
+
+tbl2 %>%
+  tidy() -> tbl2
+
+
+tbl <- rbind(tbl1, tbl2)[c(1,3,4,5,6)]
+tbl$estimate <- exp(tbl$estimate)
+names(tbl)[1] <- 'Comparision'
+tbl$p.value[tbl$p.value < 0.001] <- '< 0.001'
+tbl %>%
+  kable("html") %>%
+  kable_styling('responsive') %>%
+  add_indent(c(1:4))
+```
+
+
+
+Reducing the quality of diet from excellent to good increase the odds of having hypertension by 1.06 ($P < 0.001$), reducing the quality of diet from excellent to fair increase the odds of having hypertension by 1.13 ($P < 0.001$), reducing the quality of diet from excellent to fair reduce the odds of having hypertension by 0.98 ($P < 0.001$) and reducing the quality of diet from average of very good and good to poor increase the odds of having hypertension by 0.97  ($P < 0.001$).
+
+The reduction of diet quality to levels below the current diet quality increase the odds of having hypertension. The excpetion was made by changing from excellent to poor. However, using the average of the very good and good to poor to replace that result, the reduction of the diet quality, on the average, leads to increase in the odds of hypertension substantially.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
