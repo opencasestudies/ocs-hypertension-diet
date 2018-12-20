@@ -58,6 +58,7 @@ library(kableExtra)
 library(survey)
 library(broom)
 library(multcomp)
+library(GGally)
 ```
 
 
@@ -181,6 +182,10 @@ levels(hypertension_DF$drink) <- c('Weekly', 'Monthly', 'Yearly')
 levels(hypertension_DF$smoking) <- c('Weekly', 'Monthly', 'Yearly')
 ```
 
+
+```{r, fig.height=7}
+ggpairs(hypertension_DF[,-1])
+```
 
 
 
