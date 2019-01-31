@@ -48,7 +48,7 @@ MAT: Ted, I'm not sure about the logic in installing the packages -- I'll includ
 ### Load packages
 ```{r, warning=F, message=F}
 if(!require("nhanesA")){
-  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone", 'survey' ))
+  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone", 'survey', "kableExtra", "multcomp", "GGally", "ggpubr", "Rmisc"))
 }
 library(tidyverse)
 library(knitr)
@@ -60,23 +60,27 @@ library(survey)
 library(broom)
 library(multcomp)
 library(GGally)
+library(ggpubr)
+library(Rmisc)
 ```
 
 
 ### Read the Data from csv File
 
 
-MAT: Just use relative paths inside the project
 ```{r}
 dat <- read.sas7bdat('./data/dat.sas7bdat')
 ```
 
 ### Select the Variables that You're Interesed In
 
-MAT: can you include a link to the paper you are referring to or at least reference it?
-MAT: I think you should add some details here of the variables you are considering: maybe a table with each variable name and a brief description of the different values?
-For the covariates of interest, we check the related paper and selected 11 covariates that have a potential association with hypertension according to the authors. The variables can also be chosen by univariate analysis in the whole data set with adjusted family error rates. We will talk about the way of doing that in the other project.
-MAT: Maybe link to the other case study here?
+*MAT: can you include a link to the paper you are referring to or at least reference it?*
+
+*MAT: I think you should add some details here of the variables you are considering: maybe a table with each variable name and a brief description of the different values?*
+
+For the covariates of interest, we checked the related paper and selected 11 covariates that have a potential association with hypertension according to the authors. The variables can also be chosen by univariate analysis in the whole data set with adjusted family error rates. We discuss this process in our OCS [project on classification](https://github.com/opencasestudies/ocs-hypertension-classification).
+
+*MAT: Maybe link to the other case study here?*
 
 
 MAT: could consider doing this using a tidyverse function like select or rename
@@ -101,28 +105,19 @@ surveyweight = dat$CAPI_WT
 ### Adjust the Data Type
 
 
-After you get you clean data set, adjusting the type of the covariate is very important, and you should do before doing any analysis in R.
+After you get your data set, adjusting the type of the covariate is very important, and you should do before doing any analysis in R. Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
 
-Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
+For example, in ` lm()` and ` glm()`, the function will automatically make the factor to categorical data and if you didn't change the type of the data, you will have the wrong result where the categorical variables are treated as continous variables.
 
-For example, in ` lm()` and ` glm()`, the function will automatically make the factor to categorical data and if you didn't change the type of the data, you will have the wrong result which identify the categorical variables to continous variables.
-
-There are several ways that you can have a glance at your data. Plotting the data is an excellent way to understand your data at first sight.
+There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `str` functions are excellents way to understand your data at first sight.
 
 
+The ` str()` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
 
-There are several ways that you can have a glance at your data. What I would recommend you is using the summary and str functions to see the data summary
-
-
-
-
-MAT: The "glimpse" function from the tidyverse is also useful for this.
 ```{r}
 ## check the original data type
 str(hypertension_DF)
 ```
-
-The ` str()` function will return you the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data.
 
 
 
@@ -373,7 +368,7 @@ And then, your function will appear, you can also save multiple functions in an 
 
 
 ```{r}
-source(paste0(directory, "/svyplot.R"))
+source("svyplot.R")
 ```
 
 ```{r}
