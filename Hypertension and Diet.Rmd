@@ -112,7 +112,7 @@ For example, in ` lm()` and ` glm()`, the function will automatically make the f
 There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `str` functions are excellents way to understand your data at first sight.
 
 
-The ` str()` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
+The ` str` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
 
 ```{r}
 ## check the original data type
@@ -121,7 +121,7 @@ str(hypertension_DF)
 
 
 
-
+The `summary` function tabulates categorical variables and provides summary statistics for continuous ones, while also including a count of missing values, which can be very important in deciding what variables to consider in downstream analysis.
 
 ```{r}
 ## find a charactor of the data for further adjustment
@@ -131,12 +131,13 @@ summary(hypertension_DF)
 
 
 
-From the two figures above, we can tell that there are some categorical variables like race, gender, born place, diet, neighborhood incomes, income, diabetes, BMI, drink, and smoke.
+From the two data summaries above, we can see that there are some categorical variables like race, gender, born place, diet, neighborhood incomes, income, diabetes, BMI, drink, and smoke.
 
-So, the first step, we need to, instead of using the numeric class of it, change it to factors.
+The first step for these categorical variables is to change them to factors.
 
-We can, of course, change it one by one. However, the reason that we plot the data and look at the summary of it first is that it can give us some information so that we can process the data easier.
+We can, of course, change it one by one. However, the reason that we plot the data and look at the summary of it first is that it can give us some information so that we can process the data more easily.
 
+*MAT: I am not a huge fan of this logic. It does not seem all that flexible/reproducible to have a hard-coded value of 5 included here. I wonder if there is another way of automating this. Alternatively, writing a function that takes a list of variable names, for example, would be better, I think.*
 A better way to change the type of data especially when you have lots of covariates is to set a threshold according to the character of the data. Here, we can see that the mean of the categorical data cannot exceed 5. So, we set 5 as the threshold and for any variable with mean smaller than 5, we set it to factor, else, we maintain its type.
 
 
