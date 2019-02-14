@@ -229,6 +229,9 @@ div.tocify {
 <h2>Motivation</h2>
 <p>The pathology of hypertension has been found with several medical studies, salt intaking is one of the most important risk factors for having hypertension. Instead of seeing the association of hypertension and salt intake, we focus on other factors that might have the impact on the odds of having hypertension.</p>
 <p>Moreover, our case study also introduced the logistic regression and survey-weighted logistic regression, focusing on the difference of the two models and obviously survey-weighted logistic regression would be our choice of the model since we are using the survey data and it is weighted.</p>
+<p>We will analyze the association of hypertension and diet in our study. We primaly used ANOVA analysis and Post Hoc analysis using survey weighted data to get our conclusion that:</p>
+<p>Reducing the quality of diet from excellent to good increase the odds of having hypertension by 1.06 (<span class="math inline">\(P &lt; 0.001\)</span>), reducing the quality of diet from excellent to fair increase the odds of having hypertension by 1.13 (<span class="math inline">\(P &lt; 0.001\)</span>), reducing the quality of diet from excellent to fair reduce the odds of having hypertension by 0.98 (<span class="math inline">\(P &lt; 0.001\)</span>) and reducing the quality of diet from average of very good and good to poor increase the odds of having hypertension by 0.97 (<span class="math inline">\(P &lt; 0.001\)</span>).</p>
+<p>The reduction of diet quality to levels below the current diet quality increase the odds of having hypertension. The excpetion was made by changing from excellent to poor. However, using the average of the very good and good to poor to replace that result, the reduction of the diet quality, on the average, leads to increase in the odds of hypertension substantially.</p>
 </div>
 <div id="what-is-the-data" class="section level2">
 <h2>What is the Data</h2>
@@ -1161,7 +1164,6 @@ tbl1</code></pre>
 ## (Adjusted p values reported -- single-step method)</code></pre>
 <p>Even more, we can design a matrix that compare the average of some values</p>
 <pre class="r"><code>K &lt;- rbind(
-
   &quot;Ave. of Very good and good - Poor&quot; = c(0,0.5,0.5,0,-1)
   )</code></pre>
 <pre class="r"><code>glht(fit1, linfct = mcp(diet = K)) %&gt;%

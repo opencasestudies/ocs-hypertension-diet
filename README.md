@@ -2,6 +2,9 @@
 
 This case study is part of the [OpenCaseStudies]() project. This work is licensed under the Creative Commons Attribution-NonCommercial 3.0 ([CC BY-NC 3.0](https://creativecommons.org/licenses/by-nc/3.0/us/)) United States License.
 
+The libraries used in this study are ` library(tidyverse)`, ` library(knitr)`, ` library(sas7bdat)`, ` library(tableone)`, ` library(knitr)`, ` library(kableExtra)`,` library(survey)`, ` library(broom)`, ` library(multcomp)`, ` library(GGally)`
+
+
 
 ## Risk factors for hypertension using NYC NHANES data
 
