@@ -1,5 +1,5 @@
 ---
-title: "Case-study-diet"
+title: "Factors that contribute to hypertension"
 author: "Hanchao Zhang, M.S."
 output:
   html_document:
@@ -13,22 +13,8 @@ output:
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(message = F)
-knitr::opts_chunk$set(warning = F)
-
-if(!require("nhanesA")){
-  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone", 'survey' ))
-}
-library(tidyverse)
-library(knitr)
-library(sas7bdat)
-library(tableone)
-library(knitr)
-library(kableExtra)
-library(survey)
-library(broom)
-library(multcomp)
-library(GGally)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
 ```
 
 
@@ -42,10 +28,7 @@ The link between hypertension and diet is well-established, with salt intake one
 This case study will also introduce logistic regression and survey-weighted logistic regression, focusing on the difference between the two models. As we are using survey data, we show that survey-weighted logistic regression is a good choice of model in this setting.
 
 
-We will analyze the association of hypertension and diet in our study. We primaly used ANOVA analysis and Post Hoc analysis using survey weighted data to get our conclusion that:
-
-
-
+We will analyze the association of hypertension and diet in our study. We primarily used ANOVA analysis and Post Hoc analysis using survey weighted data to get our conclusion that:
 
 
 
@@ -75,144 +58,122 @@ The New York City Health and Nutrition Examination Survey (NYC HANES), modeled o
 
 ## Data Preprocessing
 
-MAT: Ted, I'm not sure about the logic in installing the packages -- I'll include a question in the word doc/Slack channel
 ### Load packages
-
-```{r, warning=F, message=F}
-if(!require("nhanesA")){
-  install.packages(c("nhanesA", "tidyverse", "knitr", "sas7bdat", "tableone", 'survey', "kableExtra", "multcomp", "GGally", "ggpubr", "Rmisc"))
-}
-library(tidyverse)
+Since this is the first R code chunk, we will load the necessary libraries.
+```{r libraryLoad, warning=FALSE, message=FALSE}
 library(knitr)
-library(sas7bdat)
 library(tableone)
-library(knitr)
 library(kableExtra)
 library(survey)
 library(broom)
-library(multcomp)
 library(GGally)
 library(ggpubr)
 library(Rmisc)
+library(tidyverse)
+library(sas7bdat)
 ```
 
 
 ### Read the Data from csv File
 
+*MAT: Where was this data downloaded from? Please add the URL or details on how you found it. Also, is there a data dictionary that defines the different variables? It would be useful to include it.*
 
-```{r}
+The data are stored in a SAS formatted file, so we will use the function `read.sas7bdat` from the `sas7bdat` library to read it into a data frame in R.
+```{r readData}
 dat <- read.sas7bdat('./data/dat.sas7bdat')
 ```
 
-### Select the Variables that You're Interesed In
+This data set contains `r nrow(dat)` observations of `r ncol(dat)` different variables. For our analysis, we will want to select only a subset of the variables.
+
+### Select the variables that we are interesed in
 
 *MAT: can you include a link to the paper you are referring to or at least reference it?*
 
 *MAT: I think you should add some details here of the variables you are considering: maybe a table with each variable name and a brief description of the different values?*
 
-For the covariates of interest, we checked the related paper and selected 11 covariates that have a potential association with hypertension according to the authors. The variables can also be chosen by univariate analysis in the whole data set with adjusted family error rates. We discuss this process in our OCS [project on classification](https://github.com/opencasestudies/ocs-hypertension-classification).
+For the covariates of interest, we checked the related paper and selected 11 covariates that have a potential association with hypertension according to the authors. The variables could also be chosen by univariate analysis in the whole data set with adjusted family-wise error rates. We discuss this process in our OCS [project on classification](https://github.com/opencasestudies/ocs-hypertension-classification).
 
-*MAT: Maybe link to the other case study here?*
+For details on the meaning and encoding of the variables, see the accompanying file `./data/28283961_nyc_hanes_codebook_public_v2_102617.pdf`.
 
 
-MAT: could consider doing this using a tidyverse function like select or rename
-```{r}
-hypertension_DF <- data.frame(
-id = dat$KEY,
-age = dat$SPAGE,
-race = dat$DMQ_14_1,
-gender = dat$GENDER,
-born = dat$US_BORN,
-diet = dat$DBQ_1,
-income = dat$INC20K,
-diabetes = dat$DX_DBTS,
-bmi = dat$BMI,
-hypertension = dat$BPQ_2,
-drink = dat$ALQ_1_UNIT,
-smoking = dat$SMOKER3CAT,
-surveyweight = dat$CAPI_WT
+Here, we use the `select` function to choose and rename the columns that we want.
+```{r selectCols}
+hypertension_DF <- dat %>% select(
+id = KEY,
+age = SPAGE,
+race = DMQ_14_1,
+gender = GENDER,
+born = US_BORN,
+diet = DBQ_1,
+income = INC20K,
+diabetes = DX_DBTS,
+bmi = BMI,
+hypertension = BPQ_2,
+drink = ALQ_1_UNIT,
+smoking = SMOKER3CAT,
+surveyweight = CAPI_WT
 )
 ```
 
 ### Adjust the Data Type
 
 
-After you get your data set, adjusting the type of the covariate is very important, and you should do before doing any analysis in R. Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
-
-For example, in ` lm()` and ` glm()`, the function will automatically make the factor to categorical data and if you didn't change the type of the data, you will have the wrong result where the categorical variables are treated as continous variables.
-
-There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `str` functions are excellents way to understand your data at first sight.
+There are several ways that you can have a glance at your data. The `head` function is a nice way to get a quick look at the data, especially if there are not too many columns. Plotting the data or using the `summary` or `glimpse` functions are also excellent ways to understand your data at first sight.
 
 
-The ` str` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
+The `glimpse` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
 
-```{r}
+```{r firstLook}
+head(hypertension_DF)
+
 ## check the original data type
-str(hypertension_DF)
+glimpse(hypertension_DF)
 ```
 
 
 
 The `summary` function tabulates categorical variables and provides summary statistics for continuous ones, while also including a count of missing values, which can be very important in deciding what variables to consider in downstream analysis.
 
-```{r}
+```{r summaryLook}
 ## find a charactor of the data for further adjustment
 summary(hypertension_DF)
 ```
 
 
+From the data summaries above, we can see that there are several categorical variables like race, gender, born, diet, neighborhood incomes, income, diabetes, BMI, drink, and smoke, which are currently being treated as numerical values.
+
+For these variables, it is important for us to adjust the coding, prior to doing any analysis in R. Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
+
+For example, in ` lm()` and ` glm()`, the function will treat numerically-coded categorical variables as continuous variables, which will give the wrong result. Instead, we want to convert these categorical variables to factors. Before doing this, we want to get a better understanding of exactly what values are stored in the different variables.
 
 
-From the two data summaries above, we can see that there are some categorical variables like race, gender, born place, diet, neighborhood incomes, income, diabetes, BMI, drink, and smoke.
-
-The first step for these categorical variables is to change them to factors.
+The first step for these categorical variables is to change them to factors. We refer to the codebook to get the correct mapping of the numerical values to the category labels.
 
 We can, of course, change it one by one. However, the reason that we plot the data and look at the summary of it first is that it can give us some information so that we can process the data more easily.
 
-*MAT: I am not a huge fan of this logic. It does not seem all that flexible/reproducible to have a hard-coded value of 5 included here. I wonder if there is another way of automating this. Alternatively, writing a function that takes a list of variable names, for example, would be better, I think.*
-A better way to change the type of data especially when you have lots of covariates is to set a threshold according to the character of the data. Here, we can see that the mean of the categorical data cannot exceed 5. So, we set 5 as the threshold and for any variable with mean smaller than 5, we set it to factor, else, we maintain its type.
+*MAT: I ended up changing this section a fair amount. I don't think it makes sense to try to have some kind of automatic recoding of the numeric variables as factors when you still need to assign the correct levels in the end anyway. So I think doing it all at once, but one variable at a time, makes the most sense.*
 
-
-
-
-```{r}
-factorvars <- NULL
-## if the mean value of the data is smaller than 4, 
-## it means these data is very likely to be categorical data, adjust it to factor.
-for (i in 2:length(hypertension_DF)) {
-  hypertension_DF[hypertension_DF[,i] == 'NaN',i] <- NA
-  if( mean(hypertension_DF[,i], na.rm = T) < 5 ){
-    ## For NaN, change it to missing value first
-    #hypertension_DF[hypertension_DF[,i] == 'NaN',i] <- NA
-    hypertension_DF[,i] <- as.factor(hypertension_DF[,i])
-    ## Record the categorical data
-    factorvars[i] <- names(hypertension_DF)[i]
-  }
-}
-## check the changed data type
-str(hypertension_DF)
+We can use the `factor` function to convert each variable and assign the correct levels. Any values that are not included in the `levels` argument will get set to `NA` values.
+```{r recodeFactors}
+hypertension_DF$race <- factor(hypertension_DF$race, levels=c(100, 110, 120, 140, 180, 250), labels=c('White', 'Black/African American', 'Indian (American)/Alaska Native', 'Native Hawaiian/Other Pacific Islander', 'Asian', 'Some Other Race'))
+hypertension_DF$gender = factor(hypertension_DF$gender, levels=c(1,2), labels=c('Male', 'Female'))
+hypertension_DF$born = factor(hypertension_DF$born, levels=c(1,2), labels=c('US-born', 'Other'))
+hypertension_DF$diet = factor(hypertension_DF$diet, levels=c(1:5), labels=c('Excellent', 'Very good', 'Good', 'Fair', 'Poor'))
+hypertension_DF$income = factor(hypertension_DF$income, levels=c(1:6), labels=c('Less than $20,000','$20,000 - $39,999','$40,000 - $59,999','$60,000 - $79,999','$80,000 - $99,999','$100,000 or more'))
+hypertension_DF$diabetes = factor(hypertension_DF$diabetes, levels=c(1:3), labels=c('Diabetic dx', 'Diabetic but no dx', 'Not diabetic'))
+hypertension_DF$hypertension = factor(hypertension_DF$hypertension, levels=c(1,2), labels=c('Yes', 'No'))
+hypertension_DF$drink = factor(hypertension_DF$drink, levels=c(1:3), labels=c('Weekly', 'Monthly', 'Yearly'))
+hypertension_DF$smoking = factor(hypertension_DF$smoking, levels=c(1:3), labels=c('Never smoker', 'Current smoker', 'Former smoker'))
 ```
 
-### Rename the Levels of the Factor
+Check to see that things worked using the `summary` function:
 
-As the str function shows, we now have our categorical variable in position. However, it's kind of hard for us to tell what the different levels represent in categorical variables. So we can rename the level and make it easier to read and analyze later.
-
-
-
-```{r}
-hypertension_DF$race <- as.factor(hypertension_DF$race)
-levels(hypertension_DF$race) <- c('White', 'Black/African American', 'Indian (American)/Alaska Native', 'Native Hawaiian/Other Pacific Islander', 'Asian', 'Some Other Race')
-levels(hypertension_DF$gender) <- c('Male', 'Female')
-levels(hypertension_DF$born) <- c('US-born', 'Other')
-levels(hypertension_DF$diet) <- c('Excellent', 'Very good', 'Good', 'Fair', 'Poor')
-levels(hypertension_DF$income) <- c('Less than $20,000','$20,000 - $39,999','$40,000 - $59,999','$60,000 - $79,999','$80,000 - $99,999','$100,000 or more')
-levels(hypertension_DF$diabetes) <- c('Diabetic dx', 'Diabetic but no dx', 'Not diabetic')
-levels(hypertension_DF$hypertension) <- c('Yes', 'No')
-levels(hypertension_DF$drink) <- c('Weekly', 'Monthly', 'Yearly')
-levels(hypertension_DF$smoking) <- c('Weekly', 'Monthly', 'Yearly')
+```{r checkRecode}
+summary(hypertension_DF)
 ```
 
 
+And take look at the data with a simple pair-wise visualization:
 ```{r, fig.height=7}
 ggpairs(hypertension_DF[,-1])
 ```
@@ -222,23 +183,22 @@ ggpairs(hypertension_DF[,-1])
 ### Check Normality of the Numeric Variables
 
 
-After changing the dataset, we are now, having a clean dataset. To explore the data more, we need to do some analysis on the data and to check some other features of them.
+After selecting the variables we want and recoding them, we now have a clean dataset. To explore the data more, we need to do some analysis on the data and to check some other features of them.
 
-One thing that we want to do first is to check the normality of your continuous data because we have to decide what test statistics to use. For example, we use the t-test to check the difference of the normal distribution and Wilcoxon test to check the difference of non-normal distribution.
+One thing that we want to do first is to check the normality of the continuous variables to help us decide what test statistics to use. For example, we use the t-test to check the difference of the normal distribution and Wilcoxon test to check the difference of non-normal distribution.
 
+The numerical varialbes we have in our data set are `age` and `bmi`.
 
 ```{r}
 par(mfrow = c(1,2))
-for (i in names(hypertension_DF[,-ncol(hypertension_DF)])) {
-  if( is.numeric(hypertension_DF[,i] ) ){
+for (i in c('age', 'bmi')) {
     qqnorm(hypertension_DF[,i], main = i)
     qqline(hypertension_DF[,i])
-  }
 }
 ```
 
 
-Since the age and BMI are not normally distributed, we should use the non-parametric(Wilcoxon) method to test the differences.
+Based on these plots, both variables show some deviation from normality. Because of this, we should use the non-parametric(Wilcoxon) method to test for differences that involve these variables.
 
 
 ## Survey Weighted Data
@@ -341,6 +301,8 @@ The ` Createtableone` function from ` TableOne` package offers a survey-weighted
 
 
 ```{r, results='hide'}
+factorvars<-c("race", "gender", "born", "diet", "income", "diabetes", "hypertension", "drink", "smoking")
+
 svyCreateTableOne(data = hypertension_design, strata = 'hypertension', factorVars = factorvars) %>%
   print(nonnormal = c('age','BMI')) -> tblprint2
 tblprint2
@@ -435,7 +397,7 @@ We can use the glht function from the multicomp package to do the PostHoc analys
 
 
 ```{r}
-glht(fit1, linfct = mcp(diet = "Tukey")) %>%
+multcomp::glht(fit1, linfct = multcomp::mcp(diet = "Tukey")) %>%
   summary() -> tbl_ph
 
 tbl_ph
@@ -471,7 +433,7 @@ K <- rbind(
 
 
 ```{r}
-glht(fit1, linfct = mcp(diet = K)) %>%
+multcomp::glht(fit1, linfct = multcomp::mcp(diet = K)) %>%
   summary() -> tbl1
 tbl1
 ```
@@ -489,7 +451,7 @@ K <- rbind(
 
 
 ```{r}
-glht(fit1, linfct = mcp(diet = K)) %>%
+multcomp::glht(fit1, linfct = multcomp::mcp(diet = K)) %>%
   summary() -> tbl2
 tbl2
 ```
