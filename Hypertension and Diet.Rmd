@@ -3,11 +3,11 @@ title: "Factors that contribute to hypertension"
 author: "Kexin Wang, M.S."
 output:
   html_document:
-    md_extensions: -startnum
+    highlight: tango
+    number_sections: no
+    theme: cosmo
     toc: yes
-    toc_float:
-      collapsed: yes
-      smooth_scroll: no
+    toc_float: yes
   pdf_document:
     toc: yes
 ---
@@ -76,7 +76,7 @@ This data set contains `r nrow(dat)` observations of `r ncol(dat)` different var
 
 As we mentioned above, this is a survey dataset based on interview or questionaires with `r ncol(dat)` variables. Some vairables are meaningless to our research interest, such as 'LAQ1: What language is being used to conduct this interview'. 
 
-Previous people showed hypertension has relationship with drink, smoking, cholesterol values, triglyceride. Except for them, we still want to choose other covariates which might not be highly-related, such as income, and try to see whether they have a potential association with hypertension. Therefore, basen on our interest, finally selected 13 covariates are kept.  
+Previous people showed hypertension has relationship with drink, smoking, cholesterol values, triglyceride. Except for them, we still want to choose other covariates which might not be highly-related, such as income, and try to see whether they have a potential association with hypertension. Therefore, based on our interest, finally selected 13 covariates are kept.  
 
 
 Here, we use the `select` function to choose and rename the columns that we want.
@@ -263,12 +263,14 @@ It seems that the second plot fails to show the relationship! So we find it is n
 ggplot(DF, aes(x = hypertension, fill = gender)) + 
   geom_bar()+ggtitle('distribution of gender')
 ```
+
 This time it works! If you want to figure the proportion of male and female for each level, just change the position attribute of the bar plot to `fill`.
 
 ```{r,fig.width=6, fig.height=4}
 ggplot(DF, aes(x = hypertension, fill = cholesterol)) + 
   geom_bar(position = "fill")+ggtitle('distribution of cholesterol')
 ```
+
 The plot fits the real world condition very well: People without hypertension are mainly those who has low cholesterol value.
 
 Simple data visualization will help you to make a first step judgement and provide much information. Plots indicate the trend, or pattern of the distribution of variables you interested in, and inspire you how to do the next step in data analysis. You can use this method to see the relationship between hypertension and other categorical variables.
@@ -417,7 +419,7 @@ Logistic regression is widely used to deal with binary response variable, let's 
 ```{r}
 g1 <- glm(hypertension~ .-id-surveyweight-hypertension, 
           family = binomial(link = "logit"),data = DF)
-#summ(g1,exp=TRUE)
+summary(g1)
 ```
 The large p-value for 'smoking' and 'drink' indicate they has no contribution to hypertension, which violate our common sense. Why we get this strange result? Remember our dataset is survey weight dataset, therefore we need to fit the model with the survey weighted data. Just use ` svyglm()` function from the ` suvery` package.
 
@@ -429,7 +431,7 @@ hypertension_design$variables$hypertension <-
 g2 <- svyglm(hypertension ~ 
     age+race+gender+diet+income+diabetes+bmi+cholesterol+drink+smoking, 
     family = binomial(link = "logit"), design = hypertension_design)
-#summ(g2, exp=TRUE)
+summary (g2)
 ```
 `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least squares estimation, so the standard errors aren't correct.
 ```{r,fig.width=7, fig.height=5}
