@@ -17,7 +17,7 @@ output:
 
 ## Motivation
 
-The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential probability of getting hypertension.
+The link between hypertension and some physical measurements is well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential probability of getting hypertension.
 
 This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the difference between them. As we are using survey data, we show the second one is a good choice of model in this setting.
 
