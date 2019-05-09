@@ -43,7 +43,6 @@ We will analyze the association of hypertension and other factors in our study.
 
 
 1. [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx): A program of studies designed to assess the health and nutritional status of adults and children in the United States.The survey is unique in that it combines interviews and physical examinations. It started in the 1960s and became a continuous program starting in 1999. Data from this survey will be used in epidemiological studies and health sciences research. It help develop sound public health policy, direct and design health programs and services, and expand the health knowledge for the Nation.
-
 NYC HANES is a local version of NHANES, which implies it mainly focus on New York area. Modeling on NHANES, NYC HANES collected data from a physical examination and laboratory tests, as well as a face-to-face and an audio computer-assisted self-interview. NHANES results have led to many important health programs and policy changes. 
 
 2. [R package nhanesA](https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html): This package was developed to enable fully customizable retrieval of data from NHANES, such as load data, list variables in NHANES table.
