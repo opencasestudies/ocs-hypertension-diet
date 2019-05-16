@@ -17,17 +17,17 @@ output:
 
 ## Motivation
 
-The link between hypertension and some physical measurements is well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on getting hypertension.
+The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
 
-This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the difference between them. As we are using survey data, we show the second one is a good choice of model in this setting.
+This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression is not accurate. So when we use survey data, survey-weight logistic regression is a good choice of model in this setting.
 
 <center>
-![](data/Final_Plot.png) 
+![](data/Finalplot.png) 
 </center>
 
 ## What is the Data
 
- [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): We download NYC HANES Analytics Datasets here. It also provides other useful resourses such as 'Data Documents', 'Variable List','Aanlytics Guideline','Questionaire'. All of them enable data users to understand the meaning and encoding of the variables better and do their analysis more efficiently.
+ [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): NYC HANES Analytics Datasets is downloaded here. Other useful resources can be found through it, such as 'Data Documents', 'Variable List','Analytics Guideline','Questionnaires'. All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
 
 
 ### Other Resource
@@ -63,7 +63,7 @@ library(plotrix)
 ### Load Data
 
 
-It is a SAS formatted file so we will use the function `read_sas` from the `haven` library to read it into a data frame in R. `haven` library is useful to import and export 'SAS', 'STATA', and 'SPSS' file.
+It is a SAS formatted file so we would like to use the function `read_sas` from the `haven` library to read it into a data frame in R. `haven` library is useful to import and export 'SAS', 'STATA', and 'SPSS' file.
 
 
 ```r
@@ -71,11 +71,11 @@ dat <- read_sas('./data/dat.sas7bdat')
 ```
 
 
-This data set contains 1527 observations of 704 different variables. For our analysis, we may select only a subset of the variables.
+This data frame contains 1527 observations of 704 different variables. In our analysis, only a subset of the variables will be selected.
 
-### Select the variables that we are interesed in
+### Select the variables that we are interested in
 
-As we mentioned above, this is a survey dataset based on interview or questionaires with 704 variables. Some vairables are meaningless to our research interest, such as 'LAQ1: What language is being used to conduct this interview'. 
+As we mentioned above, this is a survey data set based on interview or questionnaires with 704 variables. Some variables are meaningless to our research interest, such as 'LAQ1: What language is being used to conduct this interview'. 
 
 Previous people showed hypertension has relationship with drink, smoking, cholesterol values, triglyceride. Except for them, we still want to choose other covariates which might not be highly-related, such as income, and try to see whether they have a potential association with hypertension. Therefore, based on our interest, finally selected 13 covariates are kept.  
 
@@ -101,14 +101,14 @@ hypertension = BPQ_2,
 surveyweight = CAPI_WT
 )
 ```
-Here are explanation for these variables:
+Here are explanations for these variables:
 
 -Non Categorical
 
   * id: Sample case ID
   * age: Sample age, range 22-115
-  * bmi: BMI = kg/m2 where kg is a person's weight in kilograms and m2 is their height in metres squared
-  * surveyweight: surveyweught
+  * bmi: BMI = kg/m2 where kg is a person's weight in kilograms and m2 is their height in meters squared
+  * surveyweight: surveyweight
   
 -Categorical
 
@@ -157,17 +157,9 @@ Here are explanation for these variables:
     + 1 = Yes
     + 2 = No
     
-### Data Wragling
+### Data Wrangling
 
-The first step of any data analysis should be to explore the data through calculating various summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `glimpse` functions are also excellent ways to understand your data at first sight.
-
-The `glimpse` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
-
-
-```r
-#glimpse(hypertension_DF)
-```
-
+The first step of any data analysis should be to explore the data through calculating various summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `head` functions are excellent ways to help you have a quick judgement on the data set.
 
 The `summary` function tabulates categorical variables and provides summary statistics for continuous ones, while also including a count of missing values, which can be very important in deciding what variables to consider in downstream analysis.
 
@@ -226,7 +218,7 @@ table(dat$ALQ_1)
 ##  28  30  40  50  60 100 144 180 189 200 365 
 ##   1   8   1   1   1   1   1   1   1   1   7
 ```
-The result answers why there are so many missing value for 'drink'. In these 412 missing value, 406 sample never drink and there are just 6 real missing value. Therefore, merging these two as one is a better choice to avoid losing too many observations.
+The result answers why there are so many missing value for 'drink'. Among these 412 missing values, 406 samples never drink and there are just 6 real missing values. Therefore, merging these two variables as one is a better choice to avoid losing too many observations.
 
 
 ```r
@@ -238,9 +230,9 @@ summary(hypertension_DF$drink)
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
 ##   1.000   1.000   2.000   2.333   4.000   4.000       6
 ```
-With the help of function `which()`, we just have 6 missing value for 'drink' now.
+With the help of function `which()`, 6 missing value for 'drink' is left now.
 
-Next step we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
+In next step, we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
 
 
 ```r
@@ -281,8 +273,8 @@ labels=c('Less than $20,000','$20,000 - $39,999',
 '$40,000 - $59,999','$60,000 - $79,999',
 '$80,000 - $99,999','$100,000 or more'))
 
-DF$diabetes <-  factor(DF$diabetes, levels=c(3:1), 
-labels=c('Not diabetic','Diabetic but no dx','Diabetic dx'))
+DF$diabetes <-  factor(DF$diabetes, levels=c(3,1,2), 
+labels=c('Not diabetic','Diabetic dx','Diabetic but no dx'))
 
 DF$cholesterol <-  factor(DF$cholesterol, levels=c(2,1), 
 labels=c('Low value','High value'))
@@ -318,8 +310,8 @@ summary(DF)
 ##                               $100,000 or more :201  
 ##                diabetes        bmi            cholesterol      drink    
 ##  Not diabetic      :911   Min.   :15.02   Low value :758   Never  :255  
-##  Diabetic but no dx: 28   1st Qu.:23.40   High value:307   Weekly :424  
-##  Diabetic dx       :126   Median :26.47                    Monthly:201  
+##  Diabetic dx       :126   1st Qu.:23.40   High value:307   Weekly :424  
+##  Diabetic but no dx: 28   Median :26.47                    Monthly:201  
 ##                           Mean   :27.76                    Yearly :185  
 ##                           3rd Qu.:30.47                                 
 ##                           Max.   :69.17                                 
@@ -348,7 +340,7 @@ p1
 
 ![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
-Now let's use three different ways to plot categorical variable 'gender'.
+Now let's try three different ways to plot categorical variable 'gender'.
 
 
 ```r
@@ -391,7 +383,7 @@ It possible and indeed often happens to a perfectly designed sampling plan ends 
 ### What is the Weight of Data
 
 
-Assuming that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to know their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Of course not since there is a higher proportion of female in sample than populationin. The way of calculating the weight is:
+Assuming that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to know their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Definitely not since there is a higher proportion of female in sample than population. The way of calculating the weight is:
 
 
 $$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
@@ -404,6 +396,9 @@ When we have multiple strata on the data, it might be troublesome to calculate t
 
 ### The weight we use
 
+NYC HANES 2013-2014 data are weighted in order to compensate for unequal probability of selection and  5 sets of survey weights have been constructed: CAPI  weight, Physical weight, Blood Lab result weight, Urine Lab results weight and Salica Lab results weight. The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst. When an analysis involves variables from different components of the survey, the analyst should decide whether the outcome is inclusive or exclusive, and then choose certain weights. The website (http://nychanes.org/data/) provides a guideline about how to use weight with different purposes, and you can find them through 'Analytic Guideline' and 'Other Training Materials'. 
+
+As the weight is given in the origin dataset, we use it as variable 'surveyweight' directly in our study. Here we choose CAPI weight, which should be used to analyze participants??? responses to all interview questions. All 1527 survey participants have a CAPI_WT. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
 
 ### What is Finite Population Correction Factor
 
@@ -413,8 +408,15 @@ $$FPC = (\frac{N-n}{N-1})^{\frac{1}{2}}$$
  + n = sample size
 
 
-The finite population correction (fpc) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. It is used when you sample without replacement from more than 5% of a finite population. Under these circumstances, the Central Limit Theorem does not hold and the standard error of the estimate (e.g. the mean or proportion) will be too big. But in our case, the sample proportion is far less than 5% so we don't need it.
+The finite population correction (fpc) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. 
 
+
+```r
+N <-  6825749
+n <- 1065
+#((N-n)/(N-1))^0.5
+```
+fpc of our data set is almost close to 1 and in general, you can ingore it. But if you want to get a without replacement sample, it is more appropriate to use it.
 
 ### Create the Survey Weight Data
 
@@ -424,9 +426,9 @@ There is a function ` svydesign()` in R package ` survey`. The function combines
 
  + data: Data frame to look up variables in the formula arguments, or database table name
 
- + weights = Formula or vector specifying sampling weights as an alternative to ` prob`
+ + weights: Formula or vector specifying sampling weights as an alternative to `prob`
 
- + fpc: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size).
+ + fpc: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc derives a without replacement sample, otherwise with replacement sample.
  
  + strata: Specify it for stratified sampling, which divides members of the population into homogeneous subgroups and then sample independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
  
@@ -435,16 +437,13 @@ Now we use some options to create a design relative to our dataset:
 
 
 ```r
-hypertension2 <- DF$hypertension
-hypertension2 <- ifelse(hypertension2 == 'No',0,1)
 hypertension_design <- svydesign(
   id = ~1,
-  data = DF[,-c(1,13)],
-  weights = ~DF$surveyweight
-
+  fpc = ~rep(N,n),
+   weights = ~DF$surveyweight,
+  data = DF[,-c(1,13)]
 )
 ```
-
 The arguments are interpreted as the following:
 
 + ids = ~1 means there is no clustering.
@@ -453,6 +452,20 @@ The arguments are interpreted as the following:
 
 + weights= ~DF$surveyweight tells it where to find the weight.
 
+We also want to try stratified sampling based on gender.
+
+
+```r
+hypertension_design2 <- svydesign(
+  id = ~1,
+  fpc = ~rep(N,n),
+   strata = DF$gender,
+  data = DF[,-c(1,13)]
+)
+```
+
++ strata = DF$gender means we devide the total population based on gender.
+
 `summary()` shows the results:
 
 ```r
@@ -460,25 +473,27 @@ summary(hypertension_design)
 ```
 
 ```
-## Independent Sampling design (with replacement)
-## svydesign(id = ~1, data = DF[, -c(1, 13)], weights = ~DF$surveyweight)
+## Independent Sampling design
+## svydesign(id = ~1, fpc = ~rep(N, n), weights = ~DF$surveyweight, 
+##     data = DF[, -c(1, 13)])
 ## Probabilities:
 ##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
 ## 6.484e-05 2.089e-04 2.810e-04 2.921e-04 3.492e-04 9.705e-04 
+## Population size (PSUs): 6825749 
 ## Data variables:
 ##  [1] "age"          "race"         "gender"       "diet"        
 ##  [5] "income"       "diabetes"     "bmi"          "cholesterol" 
 ##  [9] "drink"        "smoking"      "hypertension"
 ```
 
-"Independent sampling design" means our sampling design is an simple random sample. When the population size is specified (via the fpc argument) it is assumed that the SRS is without replacement. By setting other parameters you can also design differenct kinds of design, such as stratified sampling etc.
+"Independent sampling design" means our sampling design is a simple random sample. When the population size is specified (via the fpc argument) it is assumed that the SRS is without replacement. By setting other parameters you can also design differenct kinds of design, such as stratified sampling etc.
 
 
 ## Survey Weight Data Analysis
 
-Once we created a `survey.design` object, we can do futher analysis. It is very convenient to use `svy*` funtions which are corresponds to built in R functios but account for survey design features.
+Once we created a `survey.design` object, we can do further analysis. It is very convenient to use `svy*` functions which account for survey design features.
 
-To calculate the mean and its standard error, use function`svymean()`. Compare the result of traditional way with the help of `mean()` and `std.error()`:
+To calculate the mean and its standard error, use function `svymean()`. Compare the result of traditional way with the help of `mean()` and `std.error()`:
 
 ```r
 svymean(~bmi, hypertension_design)
@@ -504,7 +519,7 @@ std.error(DF$bmi)
 ```
 ## [1] 0.2010068
 ```
-It seems that there is not a big differene between them. To calculate the confidence interval, use function `confint()` directly:
+It seems that there is not a significant differene between them. To calculate the confidence interval, use function `confint()` directly:
 
 ```r
 confint(svymean(~bmi, hypertension_design))
@@ -512,7 +527,7 @@ confint(svymean(~bmi, hypertension_design))
 
 ```
 ##        2.5 %   97.5 %
-## bmi 27.46845 28.32625
+## bmi 27.46848 28.32621
 ```
 Subgroup statistics is also easy to calculate with function `svyby()`:
 
@@ -522,13 +537,13 @@ svyby(~bmi, by=~diet, design=hypertension_design, FUN = svymean)
 
 ```
 ##                diet      bmi        se
-## Poor           Poor 29.50139 1.0511178
-## Fair           Fair 30.30994 0.6104274
-## Good           Good 27.51282 0.3045348
-## Very good Very good 26.51232 0.3048522
-## Excellent Excellent 26.04319 0.6233014
+## Poor           Poor 29.50139 1.0510358
+## Fair           Fair 30.30994 0.6103798
+## Good           Good 27.51282 0.3045111
+## Very good Very good 26.51232 0.3048284
+## Excellent Excellent 26.04319 0.6232528
 ```
-If you are particulary interested in one group, you can use function `subset()` :
+If you are particularly interested in one group, you can use function `subset()` :
 
 ```r
 svymean(~bmi, subset(hypertension_design,gender=="Female"))
@@ -553,152 +568,321 @@ It seems that female's mean bmi and sde are a little higher.
 
 ## Fit Generalized Linear Regression
 
-Logistic regression is widely used to deal with binary response variable. As we mentioned above, our dataset is survey weight dataset, therefore we need to fit the model with the survey weighted data. Just use ` svyglm()` function from the ` suvey` package.
+### Use `svyglm` in R
 
-It's similary to fit a normal logistic regression, the only difference is that instead of using the orignal data set #in the ` data` argument, you should input the object from the ` svydesign()` to the ` design` argument in the function.
+Logistic regression is widely used to deal with binary response variable. As we mentioned above, our dataset is survey weight dataset, therefore we need to fit the model with the survey weighted data. Just use ` svyglm()` function from the ` survey` package.
+
+It's similar to fit a normal logistic regression, the only difference is that, instead of using the original data set in the ` data` argument, you should input the object from the ` svydesign()` to the ` design` argument in the function.
 
 
 ```r
-#hypertension_design$variables$hypertension <- 
-#  ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no =1)
+hypertension_design$variables$hypertension <- 
+  ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no =1)
 g1 <- svyglm(hypertension ~ 
     age+race+gender+diet+income+diabetes+bmi+cholesterol+drink+smoking, 
-    family = binomial(link = "logit"), design = hypertension_design)
-summary (g1)
+    family = quasibinomial(), design = hypertension_design)
+summ(g1)
 ```
 
-```
-## 
-## Call:
-## svyglm(formula = hypertension ~ age + race + gender + diet + 
-##     income + diabetes + bmi + cholesterol + drink + smoking, 
-##     design = hypertension_design, family = binomial(link = "logit"))
-## 
-## Survey design:
-## svydesign(id = ~1, data = DF[, -c(1, 13)], weights = ~DF$surveyweight)
-## 
-## Coefficients:
-##                            Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)                -4.66701    0.71149  -6.559 8.50e-11 ***
-## age                         0.03584    0.00634   5.653 2.03e-08 ***
-## raceBlack/African American  0.71920    0.23774   3.025 0.002546 ** 
-## raceIndian /Alaska Native  -1.48925    1.06706  -1.396 0.163113    
-## racePacific Islander        2.45617    1.37950   1.780 0.075291 .  
-## raceAsian                   0.27053    0.28205   0.959 0.337695    
-## raceOther Race              0.17069    0.30698   0.556 0.578308    
-## genderFemale               -0.45764    0.20139  -2.272 0.023267 *  
-## dietFair                    0.21772    0.34806   0.626 0.531763    
-## dietGood                    0.21726    0.34237   0.635 0.525851    
-## dietVery good              -0.06954    0.37048  -0.188 0.851157    
-## dietExcellent              -0.04324    0.45058  -0.096 0.923569    
-## income$20,000 - $39,999    -0.55528    0.23577  -2.355 0.018698 *  
-## income$40,000 - $59,999    -0.84488    0.34869  -2.423 0.015562 *  
-## income$60,000 - $79,999    -0.30994    0.29947  -1.035 0.300930    
-## income$80,000 - $99,999    -0.78449    0.53305  -1.472 0.141400    
-## income$100,000 or more     -0.70536    0.29389  -2.400 0.016567 *  
-## diabetesDiabetic but no dx  0.42703    0.42604   1.002 0.316420    
-## diabetesDiabetic dx         0.93847    0.26122   3.593 0.000343 ***
-## bmi                         0.06885    0.01415   4.865 1.32e-06 ***
-## cholesterolHigh value       0.86074    0.19056   4.517 6.99e-06 ***
-## drinkWeekly                -0.01798    0.26259  -0.068 0.945433    
-## drinkMonthly               -0.27953    0.28862  -0.969 0.333007    
-## drinkYearly                 0.08074    0.28226   0.286 0.774885    
-## smokingFormer smoker       -0.35115    0.28901  -1.215 0.224637    
-## smokingCurrent smoker      -0.09747    0.24455  -0.399 0.690308    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 0.9641576)
-## 
-## Number of Fisher Scoring iterations: 5
-```
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1065 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> hypertension </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Survey-weighted generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> quasibinomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Pseudo-R² (Cragg-Uhler) </td>
+   <td style="text-align:right;"> 0.08 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Pseudo-R² (McFadden) </td>
+   <td style="text-align:right;"> 0.24 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> AIC </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Est. </th>
+   <th style="text-align:right;"> S.E. </th>
+   <th style="text-align:right;"> t val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> -4.67 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> -6.56 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 5.65 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> raceBlack/African American </td>
+   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> 3.03 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> raceIndian /Alaska Native </td>
+   <td style="text-align:right;"> -1.49 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> -1.40 </td>
+   <td style="text-align:right;"> 0.16 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> racePacific Islander </td>
+   <td style="text-align:right;"> 2.46 </td>
+   <td style="text-align:right;"> 1.38 </td>
+   <td style="text-align:right;"> 1.78 </td>
+   <td style="text-align:right;"> 0.08 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> raceAsian </td>
+   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 0.34 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> raceOther Race </td>
+   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> 0.58 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> genderFemale </td>
+   <td style="text-align:right;"> -0.46 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> -2.27 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> dietFair </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 0.53 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> dietGood </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.34 </td>
+   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 0.53 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> dietVery good </td>
+   <td style="text-align:right;"> -0.07 </td>
+   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> -0.19 </td>
+   <td style="text-align:right;"> 0.85 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> dietExcellent </td>
+   <td style="text-align:right;"> -0.04 </td>
+   <td style="text-align:right;"> 0.45 </td>
+   <td style="text-align:right;"> -0.10 </td>
+   <td style="text-align:right;"> 0.92 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> income$20,000 - $39,999 </td>
+   <td style="text-align:right;"> -0.56 </td>
+   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> -2.36 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> income$40,000 - $59,999 </td>
+   <td style="text-align:right;"> -0.84 </td>
+   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> -2.42 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> income$60,000 - $79,999 </td>
+   <td style="text-align:right;"> -0.31 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> -1.04 </td>
+   <td style="text-align:right;"> 0.30 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> income$80,000 - $99,999 </td>
+   <td style="text-align:right;"> -0.78 </td>
+   <td style="text-align:right;"> 0.53 </td>
+   <td style="text-align:right;"> -1.47 </td>
+   <td style="text-align:right;"> 0.14 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> income$100,000 or more </td>
+   <td style="text-align:right;"> -0.71 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> -2.40 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> diabetesDiabetic dx </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> 3.59 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> diabetesDiabetic but no dx </td>
+   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 0.32 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> bmi </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 4.87 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> cholesterolHigh value </td>
+   <td style="text-align:right;"> 0.86 </td>
+   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 4.52 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> drinkWeekly </td>
+   <td style="text-align:right;"> -0.02 </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> -0.07 </td>
+   <td style="text-align:right;"> 0.95 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> drinkMonthly </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> -0.97 </td>
+   <td style="text-align:right;"> 0.33 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> drinkYearly </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 0.77 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> smokingFormer smoker </td>
+   <td style="text-align:right;"> -0.35 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> -1.22 </td>
+   <td style="text-align:right;"> 0.22 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> smokingCurrent smoker </td>
+   <td style="text-align:right;"> -0.10 </td>
+   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> -0.40 </td>
+   <td style="text-align:right;"> 0.69 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; border: 0;" colspan="100%">
+<sup></sup> Standard errors: Robust</td></tr></tfoot>
+</table>
 
-
-What would happen if we use general logistic regression? 
+### Model Selection
+Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigifincant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
 
 
 ```r
-g2 <- glm(hypertension~ .-id-surveyweight-hypertension, 
-          family = binomial(link = "logit"),data = DF)
-summary (g2)
+g2 <- svyglm(hypertension ~ 
+        age+bmi+cholesterol+diabetes+gender+smoking+diet, 
+        family=binomial(), design = hypertension_design)
+#summ(g2)$coeftable[,1:2]
 ```
 
-```
-## 
-## Call:
-## glm(formula = hypertension ~ . - id - surveyweight - hypertension, 
-##     family = binomial(link = "logit"), data = DF)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -2.3756  -0.6672  -0.3893   0.6077   2.6165  
-## 
-## Coefficients:
-##                             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)                -4.732033   0.662126  -7.147 8.89e-13 ***
-## age                         0.040324   0.005823   6.925 4.36e-12 ***
-## raceBlack/African American  0.760044   0.215791   3.522 0.000428 ***
-## raceIndian /Alaska Native  -0.669584   1.158215  -0.578 0.563185    
-## racePacific Islander        1.985387   1.167204   1.701 0.088947 .  
-## raceAsian                   0.194323   0.281599   0.690 0.490151    
-## raceOther Race              0.034723   0.263874   0.132 0.895310    
-## genderFemale               -0.465886   0.171248  -2.721 0.006518 ** 
-## dietFair                    0.120145   0.347255   0.346 0.729354    
-## dietGood                    0.057772   0.336433   0.172 0.863657    
-## dietVery good              -0.242688   0.359130  -0.676 0.499188    
-## dietExcellent              -0.241157   0.424925  -0.568 0.570354    
-## income$20,000 - $39,999    -0.639445   0.226512  -2.823 0.004758 ** 
-## income$40,000 - $59,999    -1.068191   0.301915  -3.538 0.000403 ***
-## income$60,000 - $79,999    -0.331098   0.294005  -1.126 0.260097    
-## income$80,000 - $99,999    -0.841268   0.396421  -2.122 0.033824 *  
-## income$100,000 or more     -0.638683   0.267671  -2.386 0.017029 *  
-## diabetesDiabetic but no dx  0.315543   0.433138   0.729 0.466305    
-## diabetesDiabetic dx         0.827346   0.241090   3.432 0.000600 ***
-## bmi                         0.071089   0.013437   5.291 1.22e-07 ***
-## cholesterolHigh value       0.783644   0.180467   4.342 1.41e-05 ***
-## drinkWeekly                -0.129452   0.231432  -0.559 0.575920    
-## drinkMonthly               -0.288026   0.260539  -1.106 0.268943    
-## drinkYearly                -0.002433   0.249861  -0.010 0.992232    
-## smokingFormer smoker       -0.082791   0.265734  -0.312 0.755377    
-## smokingCurrent smoker      -0.019676   0.208929  -0.094 0.924970    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 1247.19  on 1064  degrees of freedom
-## Residual deviance:  939.07  on 1039  degrees of freedom
-## AIC: 991.07
-## 
-## Number of Fisher Scoring iterations: 5
-```
-
-`survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least squares estimation, so the standard errors aren't correct.
-
+We would further study which covariate has larger influence on hypertension, thus we compare their influence and the result is shown in a plot below.
 
 
 ```r
-g3 <- svyglm(hypertension ~ 
-        age+gender+diet+diabetes+bmi+cholesterol+drink+smoking, 
-        family = binomial(link = "logit"), design = hypertension_design)
+s <- data.frame('c'=exp(g2$coefficients[2:12]),
+                'n'=names(g2$coefficients)[2:12])
+s <- s[order(s$c),]
+l=seq(from=2, to=12, by=1)
 
-s <- data.frame('c'=exp(g3$coefficients[2:16]),
-                'l'=seq(from=2, to=16, by=1),
-                'n'=names(g3$coefficients)[2:16])
-
-plt<- ggplot(s,aes(x = l,y=c,col=s$c)) + 
+plt<- ggplot(s,aes(x = l, y=c,col=s$c)) + 
   geom_point(size=5)+ 
   scale_colour_gradient(low ='pink', high = 'darkred')+
   geom_hline(yintercept = 1,col='pink',size=1.5,linetype=2)+
-  theme_bw() + theme(plot.title = element_text(hjust = 0.5 ,vjust=-1.5))+
+  theme_bw() + theme(plot.title = element_text(hjust = 2,vjust=-2))+
   geom_text_repel(aes(y = c,label=n),col='darkred')+
   ggtitle("Effect on Hypertension") + 
   ylab("Feature Effects") + 
-  xlab("Features")
+  xlab("Features")+
+  coord_flip()
   
 plt
 ```
 
-![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+
+Here we plot the exponential form of coefficients. If the value is larger than 1, this corvariate is positive on the probability of getting hypertension, and vice versa. Besides, larger absolute value indicates larger influence on response variable. 
+
+We can conclude that people with diabetes, high value of cholesterol and fair diet have higher risk of getting hypertension. Also, among them, diabetes and cholesterol have the strongest relationship with hypertension, which is an accurate reflection of real-world situation. In all, with the help of this satisfactory regression model, research organization is able to make an initial judgement about whether the sample has high risk of hypertension once they collect information.
+
+### Compare `glm` and `svyglm`
+
+Now, thinking about what would happen if we use general logistic regression? 
 
 
+```r
+g3 <- glm(hypertension~ age+bmi+cholesterol+diabetes+gender+smoking+diet, 
+          family = binomial(link = 'logit'),data = DF)
+#summ(g3)$coeftable[,1:2]
+```
+
+Function `plot_summs` plots regression coefficients and their uncertainty in a visually appealing way.
+
+
+```r
+plot_summs(g2, g3, scale = TRUE, model.names = c("svyglm", "glm"))
+```
+
+![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+
+```r
+#ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
+```
+We can see that 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger difference in confidence interval plot while 'age', 'bmi' and 'gender' have slight difference. 
+
+It is strange that the confidence interval computed by `svyglm` is larger than that computed by `glm`. One possible reason behind this is `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least square estimation, so the standard errors aren't correct. 

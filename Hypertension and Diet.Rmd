@@ -19,17 +19,17 @@ knitr::opts_chunk$set(echo = TRUE,message = FALSE,warning = FALSE)
 
 ## Motivation
 
-The link between hypertension and some physical measurements is well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on getting hypertension.
+The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
 
-This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the difference between them. As we are using survey data, we show the second one is a good choice of model in this setting.
+This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression is not accurate. So when we use survey data, survey-weight logistic regression is a good choice of model in this setting.
 
 <center>
-![](data/Final_Plot.png) 
+![](data/Finalplot.png) 
 </center>
 
 ## What is the Data
 
- [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): We download NYC HANES Analytics Datasets here. It also provides other useful resourses such as 'Data Documents', 'Variable List','Aanlytics Guideline','Questionaire'. All of them enable data users to understand the meaning and encoding of the variables better and do their analysis more efficiently.
+ [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): NYC HANES Analytics Datasets is downloaded here. Other useful resources can be found through it, such as 'Data Documents', 'Variable List','Analytics Guideline','Questionnaires'. All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
 
 
 ### Other Resource
@@ -64,18 +64,18 @@ library(plotrix)
 ### Load Data
 
 
-It is a SAS formatted file so we will use the function `read_sas` from the `haven` library to read it into a data frame in R. `haven` library is useful to import and export 'SAS', 'STATA', and 'SPSS' file.
+It is a SAS formatted file so we would like to use the function `read_sas` from the `haven` library to read it into a data frame in R. `haven` library is useful to import and export 'SAS', 'STATA', and 'SPSS' file.
 
 ```{r readData}
 dat <- read_sas('./data/dat.sas7bdat')
 ```
 
 
-This data set contains `r nrow(dat)` observations of `r ncol(dat)` different variables. For our analysis, we may select only a subset of the variables.
+This data frame contains `r nrow(dat)` observations of `r ncol(dat)` different variables. In our analysis, only a subset of the variables will be selected.
 
-### Select the variables that we are interesed in
+### Select the variables that we are interested in
 
-As we mentioned above, this is a survey dataset based on interview or questionaires with `r ncol(dat)` variables. Some vairables are meaningless to our research interest, such as 'LAQ1: What language is being used to conduct this interview'. 
+As we mentioned above, this is a survey data set based on interview or questionnaires with `r ncol(dat)` variables. Some variables are meaningless to our research interest, such as 'LAQ1: What language is being used to conduct this interview'. 
 
 Previous people showed hypertension has relationship with drink, smoking, cholesterol values, triglyceride. Except for them, we still want to choose other covariates which might not be highly-related, such as income, and try to see whether they have a potential association with hypertension. Therefore, based on our interest, finally selected 13 covariates are kept.  
 
@@ -100,14 +100,14 @@ hypertension = BPQ_2,
 surveyweight = CAPI_WT
 )
 ```
-Here are explanation for these variables:
+Here are explanations for these variables:
 
 -Non Categorical
 
   * id: Sample case ID
   * age: Sample age, range 22-115
-  * bmi: BMI = kg/m2 where kg is a person's weight in kilograms and m2 is their height in metres squared
-  * surveyweight: surveyweught
+  * bmi: BMI = kg/m2 where kg is a person's weight in kilograms and m2 is their height in meters squared
+  * surveyweight: surveyweight
   
 -Categorical
 
@@ -156,16 +156,9 @@ Here are explanation for these variables:
     + 1 = Yes
     + 2 = No
     
-### Data Wragling
+### Data Wrangling
 
-The first step of any data analysis should be to explore the data through calculating various summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `glimpse` functions are also excellent ways to understand your data at first sight.
-
-The `glimpse` function will return the name of the variables along with their type and some values. It helps you to check the levels and missing values in the categorical data. The `glimpse` function does something similar.
-
-```{r firstLook}
-#glimpse(hypertension_DF)
-```
-
+The first step of any data analysis should be to explore the data through calculating various summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `head` functions are excellent ways to help you have a quick judgement on the data set.
 
 The `summary` function tabulates categorical variables and provides summary statistics for continuous ones, while also including a count of missing values, which can be very important in deciding what variables to consider in downstream analysis.
 
@@ -179,15 +172,15 @@ Let's see its distribution with function `table()`.
 ```{r}
 table(dat$ALQ_1)
 ```
-The result answers why there are so many missing value for 'drink'. In these 412 missing value, 406 sample never drink and there are just 6 real missing value. Therefore, merging these two as one is a better choice to avoid losing too many observations.
+The result answers why there are so many missing value for 'drink'. Among these 412 missing values, 406 samples never drink and there are just 6 real missing values. Therefore, merging these two variables as one is a better choice to avoid losing too many observations.
 
 ```{r}
 hypertension_DF$drink[which(dat$ALQ_1==0)] <- 4
 summary(hypertension_DF$drink)
 ```
-With the help of function `which()`, we just have 6 missing value for 'drink' now.
+With the help of function `which()`, 6 missing value for 'drink' is left now.
 
-Next step we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
+In next step, we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
 
 ```{r}
 DF <- hypertension_DF %>%
@@ -226,8 +219,8 @@ labels=c('Less than $20,000','$20,000 - $39,999',
 '$40,000 - $59,999','$60,000 - $79,999',
 '$80,000 - $99,999','$100,000 or more'))
 
-DF$diabetes <-  factor(DF$diabetes, levels=c(3:1), 
-labels=c('Not diabetic','Diabetic but no dx','Diabetic dx'))
+DF$diabetes <-  factor(DF$diabetes, levels=c(3,1,2), 
+labels=c('Not diabetic','Diabetic dx','Diabetic but no dx'))
 
 DF$cholesterol <-  factor(DF$cholesterol, levels=c(2,1), 
 labels=c('Low value','High value'))
@@ -258,7 +251,7 @@ p1 <- ggplot(DF, aes(x = hypertension, y=age))+
 p1
 ```
 
-Now let's use three different ways to plot categorical variable 'gender'.
+Now let's try three different ways to plot categorical variable 'gender'.
 
 ```{r,fig.width=11,fig.height=5}
 p2 <- ggplot(DF, aes(x = hypertension, y=gender))+ 
@@ -298,7 +291,7 @@ It possible and indeed often happens to a perfectly designed sampling plan ends 
 ### What is the Weight of Data
 
 
-Assuming that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to know their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Of course not since there is a higher proportion of female in sample than populationin. The way of calculating the weight is:
+Assuming that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to know their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Definitely not since there is a higher proportion of female in sample than population. The way of calculating the weight is:
 
 
 $$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
@@ -311,6 +304,9 @@ When we have multiple strata on the data, it might be troublesome to calculate t
 
 ### The weight we use
 
+NYC HANES 2013-2014 data are weighted in order to compensate for unequal probability of selection and  5 sets of survey weights have been constructed: CAPI  weight, Physical weight, Blood Lab result weight, Urine Lab results weight and Salica Lab results weight. The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst. When an analysis involves variables from different components of the survey, the analyst should decide whether the outcome is inclusive or exclusive, and then choose certain weights. The website (http://nychanes.org/data/) provides a guideline about how to use weight with different purposes, and you can find them through 'Analytic Guideline' and 'Other Training Materials'. 
+
+As the weight is given in the origin dataset, we use it as variable 'surveyweight' directly in our study. Here we choose CAPI weight, which should be used to analyze participants??? responses to all interview questions. All 1527 survey participants have a CAPI_WT. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
 
 ### What is Finite Population Correction Factor
 
@@ -320,8 +316,14 @@ $$FPC = (\frac{N-n}{N-1})^{\frac{1}{2}}$$
  + n = sample size
 
 
-The finite population correction (fpc) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. It is used when you sample without replacement from more than 5% of a finite population. Under these circumstances, the Central Limit Theorem does not hold and the standard error of the estimate (e.g. the mean or proportion) will be too big. But in our case, the sample proportion is far less than 5% so we don't need it.
+The finite population correction (fpc) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. 
 
+```{r}
+N <-  6825749
+n <- 1065
+#((N-n)/(N-1))^0.5
+```
+fpc of our data set is almost close to 1 and in general, you can ingore it. But if you want to get a without replacement sample, it is more appropriate to use it.
 
 ### Create the Survey Weight Data
 
@@ -331,9 +333,9 @@ There is a function ` svydesign()` in R package ` survey`. The function combines
 
  + data: Data frame to look up variables in the formula arguments, or database table name
 
- + weights = Formula or vector specifying sampling weights as an alternative to ` prob`
+ + weights: Formula or vector specifying sampling weights as an alternative to `prob`
 
- + fpc: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size).
+ + fpc: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc derives a without replacement sample, otherwise with replacement sample.
  
  + strata: Specify it for stratified sampling, which divides members of the population into homogeneous subgroups and then sample independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
  
@@ -341,16 +343,13 @@ There is a function ` svydesign()` in R package ` survey`. The function combines
 Now we use some options to create a design relative to our dataset:
 
 ```{r}
-hypertension2 <- DF$hypertension
-hypertension2 <- ifelse(hypertension2 == 'No',0,1)
 hypertension_design <- svydesign(
   id = ~1,
-  data = DF[,-c(1,13)],
-  weights = ~DF$surveyweight
-
+  fpc = ~rep(N,n),
+   weights = ~DF$surveyweight,
+  data = DF[,-c(1,13)]
 )
 ```
-
 The arguments are interpreted as the following:
 
 + ids = ~1 means there is no clustering.
@@ -359,25 +358,38 @@ The arguments are interpreted as the following:
 
 + weights= ~DF$surveyweight tells it where to find the weight.
 
+We also want to try stratified sampling based on gender.
+
+```{r}
+hypertension_design2 <- svydesign(
+  id = ~1,
+  fpc = ~rep(N,n),
+   strata = DF$gender,
+  data = DF[,-c(1,13)]
+)
+```
+
++ strata = DF$gender means we devide the total population based on gender.
+
 `summary()` shows the results:
 ```{r}
 summary(hypertension_design)
 ```
 
-"Independent sampling design" means our sampling design is an simple random sample. When the population size is specified (via the fpc argument) it is assumed that the SRS is without replacement. By setting other parameters you can also design differenct kinds of design, such as stratified sampling etc.
+"Independent sampling design" means our sampling design is a simple random sample. When the population size is specified (via the fpc argument) it is assumed that the SRS is without replacement. By setting other parameters you can also design differenct kinds of design, such as stratified sampling etc.
 
 
 ## Survey Weight Data Analysis
 
-Once we created a `survey.design` object, we can do futher analysis. It is very convenient to use `svy*` funtions which are corresponds to built in R functios but account for survey design features.
+Once we created a `survey.design` object, we can do further analysis. It is very convenient to use `svy*` functions which account for survey design features.
 
-To calculate the mean and its standard error, use function`svymean()`. Compare the result of traditional way with the help of `mean()` and `std.error()`:
+To calculate the mean and its standard error, use function `svymean()`. Compare the result of traditional way with the help of `mean()` and `std.error()`:
 ```{r}
 svymean(~bmi, hypertension_design)
 mean(DF$bmi)
 std.error(DF$bmi)
 ```
-It seems that there is not a big differene between them. To calculate the confidence interval, use function `confint()` directly:
+It seems that there is not a significant differene between them. To calculate the confidence interval, use function `confint()` directly:
 ```{r}
 confint(svymean(~bmi, hypertension_design))
 ```
@@ -385,7 +397,7 @@ Subgroup statistics is also easy to calculate with function `svyby()`:
 ```{r}
 svyby(~bmi, by=~diet, design=hypertension_design, FUN = svymean)
 ```
-If you are particulary interested in one group, you can use function `subset()` :
+If you are particularly interested in one group, you can use function `subset()` :
 ```{r}
 svymean(~bmi, subset(hypertension_design,gender=="Female"))
 svymean(~bmi, subset(hypertension_design,gender=="Male"))
@@ -396,51 +408,75 @@ It seems that female's mean bmi and sde are a little higher.
 
 ## Fit Generalized Linear Regression
 
-Logistic regression is widely used to deal with binary response variable. As we mentioned above, our dataset is survey weight dataset, therefore we need to fit the model with the survey weighted data. Just use ` svyglm()` function from the ` suvey` package.
+### Use `svyglm` in R
 
-It's similary to fit a normal logistic regression, the only difference is that instead of using the orignal data set #in the ` data` argument, you should input the object from the ` svydesign()` to the ` design` argument in the function.
+Logistic regression is widely used to deal with binary response variable. As we mentioned above, our dataset is survey weight dataset, therefore we need to fit the model with the survey weighted data. Just use ` svyglm()` function from the ` survey` package.
+
+It's similar to fit a normal logistic regression, the only difference is that, instead of using the original data set in the ` data` argument, you should input the object from the ` svydesign()` to the ` design` argument in the function.
 
 ```{r}
-#hypertension_design$variables$hypertension <- 
-#  ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no =1)
+hypertension_design$variables$hypertension <- 
+  ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no =1)
 g1 <- svyglm(hypertension ~ 
     age+race+gender+diet+income+diabetes+bmi+cholesterol+drink+smoking, 
-    family = binomial(link = "logit"), design = hypertension_design)
-summary (g1)
+    family = quasibinomial(), design = hypertension_design)
+summ(g1)
 ```
 
+### Model Selection
+Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigifincant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
 
-What would happen if we use general logistic regression? 
+```{r,fig.width=7, fig.height=5,warning = FALSE}
+g2 <- svyglm(hypertension ~ 
+        age+bmi+cholesterol+diabetes+gender+smoking+diet, 
+        family=binomial(), design = hypertension_design)
+#summ(g2)$coeftable[,1:2]
+```
+
+We would further study which covariate has larger influence on hypertension, thus we compare their influence and the result is shown in a plot below.
 
 ```{r}
-g2 <- glm(hypertension~ .-id-surveyweight-hypertension, 
-          family = binomial(link = "logit"),data = DF)
-summary (g2)
-```
+s <- data.frame('c'=exp(g2$coefficients[2:12]),
+                'n'=names(g2$coefficients)[2:12])
+s <- s[order(s$c),]
+l=seq(from=2, to=12, by=1)
 
-`survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least squares estimation, so the standard errors aren't correct.
-
-
-```{r,fig.width=7, fig.height=5}
-g3 <- svyglm(hypertension ~ 
-        age+gender+diet+diabetes+bmi+cholesterol+drink+smoking, 
-        family = binomial(link = "logit"), design = hypertension_design)
-
-s <- data.frame('c'=exp(g3$coefficients[2:16]),
-                'l'=seq(from=2, to=16, by=1),
-                'n'=names(g3$coefficients)[2:16])
-
-plt<- ggplot(s,aes(x = l,y=c,col=s$c)) + 
+plt<- ggplot(s,aes(x = l, y=c,col=s$c)) + 
   geom_point(size=5)+ 
   scale_colour_gradient(low ='pink', high = 'darkred')+
   geom_hline(yintercept = 1,col='pink',size=1.5,linetype=2)+
-  theme_bw() + theme(plot.title = element_text(hjust = 0.5 ,vjust=-1.5))+
+  theme_bw() + theme(plot.title = element_text(hjust = 2,vjust=-2))+
   geom_text_repel(aes(y = c,label=n),col='darkred')+
   ggtitle("Effect on Hypertension") + 
   ylab("Feature Effects") + 
-  xlab("Features")
+  xlab("Features")+
+  coord_flip()
   
 plt
 ```
 
+Here we plot the exponential form of coefficients. If the value is larger than 1, this corvariate is positive on the probability of getting hypertension, and vice versa. Besides, larger absolute value indicates larger influence on response variable. 
 
+We can conclude that people with diabetes, high value of cholesterol and fair diet have higher risk of getting hypertension. Also, among them, diabetes and cholesterol have the strongest relationship with hypertension, which is an accurate reflection of real-world situation. In all, with the help of this satisfactory regression model, research organization is able to make an initial judgement about whether the sample has high risk of hypertension once they collect information.
+
+### Compare `glm` and `svyglm`
+
+Now, thinking about what would happen if we use general logistic regression? 
+
+```{r}
+g3 <- glm(hypertension~ age+bmi+cholesterol+diabetes+gender+smoking+diet, 
+          family = binomial(link = 'logit'),data = DF)
+#summ(g3)$coeftable[,1:2]
+```
+
+Function `plot_summs` plots regression coefficients and their uncertainty in a visually appealing way.
+
+```{r,warning = FALSE}
+plot_summs(g2, g3, scale = TRUE, model.names = c("svyglm", "glm"))
+```
+```{r, message=FALSE}
+#ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
+```
+We can see that 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger difference in confidence interval plot while 'age', 'bmi' and 'gender' have slight difference. 
+
+It is strange that the confidence interval computed by `svyglm` is larger than that computed by `glm`. One possible reason behind this is `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least square estimation, so the standard errors aren't correct. 
