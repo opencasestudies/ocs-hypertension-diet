@@ -22,7 +22,8 @@ The link between hypertension and some physical measurements has been well-estab
 This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression is not accurate. So when we use survey data, survey-weight logistic regression is a good choice of model in this setting.
 
 <center>
-![](data/Finalplot.png) 
+![](data/FinalPlot.png)
+
 </center>
 
 ## What is the Data
@@ -325,9 +326,11 @@ summary(DF)
 ```
 
 
-### Plotting Categorical Data
+## EXplore Data Analysis
 
-Plotting numerical data is something you may be familiar with. This time we are going to incorporate some of the categorical variables into the plots. Although going from raw numerical data to categorical data bins does give you less precision, it can make drawing conclusions from plots much easier. We will mainly use package `ggplot2`, a powerful tool for data visualization, and here is the link for its cheat sheet: https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf.
+Simple data visualization will help you to make a first step judgement and provide much information. Plots indicate the trend, or pattern of the distribution of variables you interested in, and inspire you how to do the next step in data analysis. We will mainly use package `ggplot2`, a powerful tool for data visualization, and here is the link for its cheat sheet: https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf.
+
+Plotting numerical data is something you may be familiar with. This time we are going to incorporate some of the categorical variables into the plots. Although going from raw numerical data to categorical data bins does give you less precision, it can make drawing conclusions from plots much easier. 
 
 First, we try to plot one categorical variable 'hypertension', with one numerical variable 'age'.
 
@@ -340,26 +343,26 @@ p1
 
 ![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
-Now let's try three different ways to plot categorical variable 'gender'.
+What about hypertension with gender? Now let's try three different ways to plot categorical variable 'gender'.
 
 
 ```r
 p2 <- ggplot(DF, aes(x = hypertension, y=gender))+ 
   geom_boxplot()+ggtitle('distribution of gender')
-p3 <- ggplot(DF, aes(x = hypertension, fill = gender)) + 
-  geom_bar()+ggtitle('distribution of gender')
-p4 <- ggplot(DF, aes(x = hypertension, fill = gender)) + 
-  geom_bar(position = "fill")+ggtitle('distribution of gender') + ylab('proportion')
+p3 <- ggplot(DF, aes(x = gender, fill = hypertension)) + 
+  geom_bar()+ggtitle('distribution of hypertension')
+p4 <- ggplot(DF, aes(x = gender, fill = hypertension)) + 
+  geom_bar(position = "fill")+ggtitle('distribution of hypertension') + ylab('proportion')
 ggarrange(p2,p3,p4,ncol=3,nrow=1)
 ```
 
 ![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-The left plot uses the same way as 'age', but it fails to show the relationship! It seems that we need a correct way instead of just applying traditional plotting methods. 
+The left plot uses the same way as 'age', but it fails to show the relationship! It seems not what we want so we need a correct way instead of just applying traditional plotting methods. 
 
-Then, we think about other ways, as shown in the other two plots. This time it works! The middle plot shows the count of 'hypertension' for male and female and you can compare the skewness of distribution. But to more clearly see the proportion of male and female for each level, we use `position='fill'`. y-axis in the right plot is proportion rather than count. It is obvious that male are more likely to get hypertension. You can try to use this method on other categorical variables.
+Then, we think about other ways, as shown in the other two plots. This time it works! We switch the x-axis and y-axis. The middle plot shows the count of 'hypertension' for male and female and you can compare the skewness of distribution. But to more clearly see the proportion of male and female for each level, we use `position='fill'`. y-axis in the right plot is proportion rather than count. It is obvious that male are more likely to get hypertension. You can try to use this method on other categorical variables.
 
-Simple data visualization will help you to make a first step judgement and provide much information. Plots indicate the trend, or pattern of the distribution of variables you interested in, and inspire you how to do the next step in data analysis. You can use this method to see the relationship between hypertension and other categorical variables.
+Simple data visualization will help you to make a first step judgement and provide much information. Plots indicate the trend, or pattern of the distribution of variables you interested in, and inspire you how to do the next step in data analysis. 
 
 
 
@@ -390,7 +393,11 @@ $$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
 $$Male~Weight = \frac{20/25}{1/25} = 20$$
 $$Female~Weight = \frac{5/25}{4/25} = 1.25$$
 
-It means one male in the sample represents 20 male in population however one female in the sample just represents 1.25 female in population.By weighting the observation, we can make the sample better represent the population.
+<center>
+![](data/surveyweight.jpeg)
+<center>
+
+By weighting the observation, we can make the sample better represent the population.
 
 When we have multiple strata on the data, it might be troublesome to calculate the weight. However, for most of the survey data, the weight is calculated and included in the dataset. In our case study, the weight is calculated and we can simply apply the weight in the survey-weighted logistic regression.
 
@@ -398,7 +405,7 @@ When we have multiple strata on the data, it might be troublesome to calculate t
 
 NYC HANES 2013-2014 data are weighted in order to compensate for unequal probability of selection and  5 sets of survey weights have been constructed: CAPI  weight, Physical weight, Blood Lab result weight, Urine Lab results weight and Salica Lab results weight. The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst. When an analysis involves variables from different components of the survey, the analyst should decide whether the outcome is inclusive or exclusive, and then choose certain weights. The website (http://nychanes.org/data/) provides a guideline about how to use weight with different purposes, and you can find them through 'Analytic Guideline' and 'Other Training Materials'. 
 
-As the weight is given in the origin dataset, we use it as variable 'surveyweight' directly in our study. Here we choose CAPI weight, which should be used to analyze participants??? responses to all interview questions. All 1527 survey participants have a CAPI_WT. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
+As the weight is given in the origin dataset, we use it as variable 'surveyweight' directly in our study. Here we choose CAPI weight, which should be used to analyze participants responses to all interview questions. All 1527 survey participants have a CAPI_WT. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
 
 ### What is Finite Population Correction Factor
 
@@ -414,7 +421,11 @@ The finite population correction (fpc) is used to reduce the variance when a sub
 ```r
 N <-  6825749
 n <- 1065
-#((N-n)/(N-1))^0.5
+((N-n)/(N-1))^0.5
+```
+
+```
+## [1] 0.9999221
 ```
 fpc of our data set is almost close to 1 and in general, you can ingore it. But if you want to get a without replacement sample, it is more appropriate to use it.
 
@@ -422,15 +433,15 @@ fpc of our data set is almost close to 1 and in general, you can ingore it. But 
 
 There is a function ` svydesign()` in R package ` survey`. The function combines a data frame and all design information needed to specify a survey design. Here is the list of options provided in this function:
 
- + ids: Specify it for cluster sampling, ~0 or ~1 is a formula for no clusters. Cluster sampling is a multi-stage sampling, the total population are divided into several clusters and a simple random sample of clusters are selected. Each element in these clusters are then sampled.
+ + `ids`: Specify it for cluster sampling, ~0 or ~1 is a formula for no clusters. Cluster sampling is a multi-stage sampling, the total population are divided into several clusters and a simple random sample of clusters are selected. Each element in these clusters are then sampled.
 
- + data: Data frame to look up variables in the formula arguments, or database table name
+ + `data`: Data frame to look up variables in the formula arguments, or database table name
 
- + weights: Formula or vector specifying sampling weights as an alternative to `prob`
+ + `weights`: Formula or vector specifying sampling weights as an alternative to `prob`
 
- + fpc: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc derives a without replacement sample, otherwise with replacement sample.
+ + `fpc`: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc derives a without replacement sample, otherwise with replacement sample.
  
- + strata: Specify it for stratified sampling, which divides members of the population into homogeneous subgroups and then sample independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
+ + `strata`: Specify it for stratified sampling, which divides members of the population into homogeneous subgroups and then sample independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
  
  
 Now we use some options to create a design relative to our dataset:
@@ -439,32 +450,18 @@ Now we use some options to create a design relative to our dataset:
 ```r
 hypertension_design <- svydesign(
   id = ~1,
-  fpc = ~rep(N,n),
+  #fpc = ~rep(N,n),
    weights = ~DF$surveyweight,
   data = DF[,-c(1,13)]
 )
 ```
 The arguments are interpreted as the following:
 
-+ ids = ~1 means there is no clustering.
++ `ids = ~1` means there is no clustering.
 
-+ data = DF[,-c(1,13)] tells `svydesign` where to find the actual data.
++ `data = DF[,-c(1,13)]` tells `svydesign` where to find the actual data.
 
-+ weights= ~DF$surveyweight tells it where to find the weight.
-
-We also want to try stratified sampling based on gender.
-
-
-```r
-hypertension_design2 <- svydesign(
-  id = ~1,
-  fpc = ~rep(N,n),
-   strata = DF$gender,
-  data = DF[,-c(1,13)]
-)
-```
-
-+ strata = DF$gender means we devide the total population based on gender.
++ `weights= ~DF$surveyweight` tells it where to find the weight.
 
 `summary()` shows the results:
 
@@ -473,13 +470,12 @@ summary(hypertension_design)
 ```
 
 ```
-## Independent Sampling design
-## svydesign(id = ~1, fpc = ~rep(N, n), weights = ~DF$surveyweight, 
-##     data = DF[, -c(1, 13)])
+## Independent Sampling design (with replacement)
+## svydesign(id = ~1, weights = ~DF$surveyweight, data = DF[, -c(1, 
+##     13)])
 ## Probabilities:
 ##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
 ## 6.484e-05 2.089e-04 2.810e-04 2.921e-04 3.492e-04 9.705e-04 
-## Population size (PSUs): 6825749 
 ## Data variables:
 ##  [1] "age"          "race"         "gender"       "diet"        
 ##  [5] "income"       "diabetes"     "bmi"          "cholesterol" 
@@ -527,7 +523,7 @@ confint(svymean(~bmi, hypertension_design))
 
 ```
 ##        2.5 %   97.5 %
-## bmi 27.46848 28.32621
+## bmi 27.46845 28.32625
 ```
 Subgroup statistics is also easy to calculate with function `svyby()`:
 
@@ -537,11 +533,11 @@ svyby(~bmi, by=~diet, design=hypertension_design, FUN = svymean)
 
 ```
 ##                diet      bmi        se
-## Poor           Poor 29.50139 1.0510358
-## Fair           Fair 30.30994 0.6103798
-## Good           Good 27.51282 0.3045111
-## Very good Very good 26.51232 0.3048284
-## Excellent Excellent 26.04319 0.6232528
+## Poor           Poor 29.50139 1.0511178
+## Fair           Fair 30.30994 0.6104274
+## Good           Good 27.51282 0.3045348
+## Very good Very good 26.51232 0.3048522
+## Excellent Excellent 26.04319 0.6233014
 ```
 If you are particularly interested in one group, you can use function `subset()` :
 
@@ -578,6 +574,9 @@ It's similar to fit a normal logistic regression, the only difference is that, i
 ```r
 hypertension_design$variables$hypertension <- 
   ifelse(hypertension_design$variables$hypertension == 'No', yes = 0, no =1)
+```
+
+```r
 g1 <- svyglm(hypertension ~ 
     age+race+gender+diet+income+diabetes+bmi+cholesterol+drink+smoking, 
     family = quasibinomial(), design = hypertension_design)
@@ -735,7 +734,7 @@ summ(g1)
    <td style="text-align:left;font-weight: bold;"> income$60,000 - $79,999 </td>
    <td style="text-align:right;"> -0.31 </td>
    <td style="text-align:right;"> 0.30 </td>
-   <td style="text-align:right;"> -1.04 </td>
+   <td style="text-align:right;"> -1.03 </td>
    <td style="text-align:right;"> 0.30 </td>
   </tr>
   <tr>
@@ -770,7 +769,7 @@ summ(g1)
    <td style="text-align:left;font-weight: bold;"> bmi </td>
    <td style="text-align:right;"> 0.07 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 4.87 </td>
+   <td style="text-align:right;"> 4.86 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -871,17 +870,50 @@ g3 <- glm(hypertension~ age+bmi+cholesterol+diabetes+gender+smoking+diet,
 #summ(g3)$coeftable[,1:2]
 ```
 
-Function `plot_summs` plots regression coefficients and their uncertainty in a visually appealing way.
+### Function `plot_summs`
+
+Function `plot_summs` is provided by library `jtools`, which plots regression coefficients and their uncertainty in a visually appealing way. The most wonderful thing is that you can do the same procedure for multiple models simultaneously, and compare directly in one plot. We would like to introduce some basic options here:
+
++ `...` : regression model(s)
+
++ `coef` : If you’d like to include only certain coefficients, provide them as a vector. If it is a named vector, then the names will be used in place of the variable names. Default: NULL
+
++ `model.names` : If plotting multiple models simultaneously, you can provide a vector of names here. Default: NULL
+
++ `ci_level`: The desired width of confidence intervals for the coefficients. Default: 0.95
+
++ `scale`: If we set it as TRUE, it will make all variable in the same scale, making it pretty easy to make a quick assessment
+
 
 
 ```r
-plot_summs(g2, g3, scale = TRUE, model.names = c("svyglm", "glm"))
+plot_summs(g2, g3,scale = TRUE, 
+           model.names = c("svyglm", "glm"))
 ```
 
 ![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
+The label names are default setting, but to make it more readable, we prefer to specify the label name via `coefs=`.
+
+
 ```r
-#ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
+plot_summs(g2,g3,
+coefs = c('age'='age','bmi'='bmi', 'cholesterol'='cholesterol',
+'diabetic with dignosis'='diabetesDiabetic dx',
+'diabetic without dignosis'='diabetesDiabetic but no dx',
+'gender'='gender','former smoker'='smokingFormer smoker',
+'current smoker'='smokingCurrent smoker',
+'fair diet'='dietFair','good diet'='dietGood',
+'very good diet'='dietVery good','excellent diet'='dietExcellent'),
+ model.names = c("svyglm", "glm"), 
+scale=TRUE)+ xlab('confidence interval')
+```
+
+![](Hypertension_and_Diet_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+
+
+```r
+ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
 We can see that 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger difference in confidence interval plot while 'age', 'bmi' and 'gender' have slight difference. 
 
