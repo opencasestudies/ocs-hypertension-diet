@@ -1,0 +1,3 @@
+"0","d <- read.delim('sunspots.dat',header = FALSE)"
+"0","colnames(d) <- c('o')"
+"0","u <- mean(d$o)"

@@ -1,0 +1,4 @@
+"0","df <- read.delim(""timeseries-hw03-data1.txt"")"
+"0","colnames(df) <- c(""observation"")"
+"0","df$time <- seq(0,nrow(df)-1)"
+"0","with(df, plot(time,observation, type='o',ylab=expression(Y[t])))"

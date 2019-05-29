@@ -1,0 +1,5 @@
+"0","par(mfrow = c(1,2))"
+"0","for (i in c('age', 'bmi')) {"
+"0","    qqnorm(hypertension_DF[,i], main = i)"
+"0","    qqline(hypertension_DF[,i])"
+"0","}"
