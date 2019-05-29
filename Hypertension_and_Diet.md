@@ -390,8 +390,8 @@ Assuming that you have 25 students (20 male and 5 female) in your class, and you
 
 
 $$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
-$$Male~Weight = \frac{20/25}{1/25} = 20$$
-$$Female~Weight = \frac{5/25}{4/25} = 1.25$$
+$$w_m=Male~Weight = \frac{20/25}{1/25} = 20$$
+$$w_f=Female~Weight = \frac{5/25}{4/25} = 1.25$$
 
 <center>
 ![](data/surveyweight.jpeg)
@@ -820,6 +820,7 @@ summ(g1)
 </table>
 
 ### Model Selection
+
 Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigifincant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
 
 
@@ -918,3 +919,13 @@ ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 We can see that 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger difference in confidence interval plot while 'age', 'bmi' and 'gender' have slight difference. 
 
 It is strange that the confidence interval computed by `svyglm` is larger than that computed by `glm`. One possible reason behind this is `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least square estimation, so the standard errors aren't correct. 
+
+
+## Summary and Results
+
+Our study mainly figures out the risk factors that contribute to hypertension and uses logistic regression to deal with binary response variable. Survery weight data is the most important topic in this study. Thus, we apply two approaches to analyze data and compare their results, one is general logistic regression and the other is survey weight logistic regression. 
+
+To select the most appropriate model, in the first step, survey weight logistic regression (`svyglm`) is applied considering our survey weight data set. Next, we delete several insignificant variables based on their p-value. Then, we compare it with `glm`. We find 'diabetes' and 'cholesterol' have strong positive effects on the probability of getting hypertension. Besides, confidence intervals for 'cholesterol', 'diabetes' ,'smoke' and 'drink' have obvious difference. `svyglm` gives a more accurate results since it may consider sampling weight. Therefore we conclude that for survey weight data, `svyglm` should be the first choice than others.
+
+In the future, we can make more efforts on applied survey methods and decide whether there exist better approaches, such as stratified sample. 
+
