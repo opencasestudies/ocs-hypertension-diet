@@ -14,6 +14,7 @@ output:
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,message = FALSE,warning = FALSE)
+options(encoding="UTF-8")
 ```
 
 
@@ -30,7 +31,7 @@ This case study also introduces logistic regression and survey-weighted logistic
 
 </center>
 
-## What is the Data
+## What is the data?
 
 Sheena: Please add some more information about NYC HANES: what was the main purpose of the survey, what was the recruitment/inclusion strategy, when were the data collected?
 
@@ -46,7 +47,7 @@ NYC HANES is a local version of NHANES, which implies it mainly focus on New Yor
 
 Sheena: You introduce this nhanesA package here, but do you actually use it at all? Maybe clarify when you would want to use this package and when you want to do as you do.
 
-## Data Preprocessing
+## Data import
 
 ### Load packages
 Since this is the first R code chunk, we will load the necessary libraries.
@@ -77,6 +78,8 @@ dat <- read_sas('./data/dat.sas7bdat')
 
 
 This data frame contains `r nrow(dat)` observations of `r ncol(dat)` different variables. In our analysis, only a subset of the variables will be selected.
+
+## Data wrangling
 
 ### Select the variables that we are interested in
 
@@ -163,7 +166,7 @@ Sheena: Can you include a path to the relevant codebook where these definitions 
     + 1 = Yes
     + 2 = No
     
-### Data wrangling
+### Initial data inspection
 
 The first step of any data analysis should be to explore the data through data visualizations including tables and summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `head` functions are excellent ways to help you have a quick judgement on the data set.
 
@@ -198,7 +201,7 @@ DF <- hypertension_DF %>%
 
 This will drop all rows which still contain missing values. Finally we retain `r nrow(DF)` observations of `r ncol(DF)` different variables.
 
-### Adjust data type
+### Adjust data types
 
 From the data summaries above, we can see that there are several categorical variables like race, gender, born, diet, income, diabetes, BMI, drink, and smoke, which are currently being treated as numerical values.
 
@@ -280,7 +283,7 @@ Sheena: Can you include some visualizations of additional variables? You would w
 
 
 
-## Survey-weighted logistic regression
+## Data analysis
 
 Now that we have spent some time cleaning and looking at visualizations of our data, we can consider using a statistical model to address our question of interest about which of the factors we are considering are related to risk of hypertension.
 
