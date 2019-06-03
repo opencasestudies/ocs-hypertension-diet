@@ -3,7 +3,7 @@ title: OpenCaseStudies - Identifying factors that contribute to hypertension usi
 author: Kexin Wang
 output:
   html_document:
-    keep_md: true
+    keep_md: false
     highlight: tango
     number_sections: no
     theme: cosmo
@@ -19,13 +19,11 @@ options(encoding="UTF-8")
 
 ## Motivation
 
-Sheena: Maybe add a little more information about hypertension: how prevalent is it, what is the public health cost of treatment, effect on life expectancy. Just to give some context on why understanding risk factors for hypertension is an important public health question. 
-
-Hypertesion is one of the most common deseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure???that???s 1 in every 3 adults. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of health care services, medications to treat high blood pressure, and missed days of work.
+Hypertesion is one of the most common deseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of health care services, medications to treat high blood pressure, and missed days of work.
 
 The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
 
-This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression is not accurate [Sheena: How does this plot indicate that the SEs are not accurate? I can see that they are different, but I can't tell by looking at the plot that one is better than the other. So maybe just say they are different, and we will discuss below which model is a better choice for this data set?]. So when we use survey data, survey-weight logistic regression is a good choice of model in this setting.
+This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression are different. We will discuss below which model is a better choice for this data set. 
 
 <center>
 ![](data/FinalPlot.png)
@@ -34,9 +32,12 @@ This case study also introduces logistic regression and survey-weighted logistic
 
 ## What is the data?
 
-Sheena: Please add some more information about NYC HANES: what was the main purpose of the survey, what was the recruitment/inclusion strategy, when were the data collected?
-
- [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): NYC HANES Analytics Datasets is downloaded here. Other useful resources can be found through it, such as 'Data Documents', 'Variable List','Analytics Guideline','Questionnaires'. All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
+ [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): NYC HANES Analytics Datasets is downloaded here. Other useful resources can be found through it, such as :
+ [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf)，
+ [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)，
+ [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf),
+ [Weight Adjustment ](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf),
+ [Questionaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf). All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
  
 The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI). From Augest 2013 to June 2014, the survey used a probability sample of non-institutionalized adult New York City residents (ages 20 years or older) to provide representative citywide estimates. For further details, please refer to its website.
 
@@ -48,8 +49,6 @@ The NYC HANES is a population-based, cross-sectional study with data collected f
 NYC HANES is a local version of NHANES, which implies it mainly focus on New York area. Modeling on NHANES, NYC HANES collected data from a physical examination and laboratory tests, as well as interviews. 
 2. [R package nhanesA](https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html): This package was developed to enable fully customizable retrieval of data from NHANES, such as load data, list variables in NHANES table. 
 We may not use the package since we don't need to use data from NHANES. If you want to design a research based on NHANES data, this package would be definitiely helpful.
-
-Sheena: You introduce this nhanesA package here, but do you actually use it at all? Maybe clarify when you would want to use this package and when you want to do as you do.
 
 ## Data import
 
@@ -80,19 +79,18 @@ The NYC HANES data file we are working with is a SAS formatted file so we would 
 dat <- read_sas('./data/dat.sas7bdat')
 ```
 
-
 This data frame contains `r nrow(dat)` observations of `r ncol(dat)` different variables. In our analysis, only a subset of the variables will be selected.
 
 ## Data wrangling
 
 ### Select the variables that we are interested in
 
-As we mentioned above, this is a survey data set based on interviews or questionnaires with `r ncol(dat)` variables. Some variables are not relevant to our current research question, such as 'LAQ1: What language is being used to conduct this interview'. 
+This is a survey data set based on interviews or questionnaires with `r ncol(dat)` variables. Some variables are not relevant to our current research question, such as 'LAQ1: What language is being used to conduct this interview'. 
 
 Previous people showed hypertension has relationship with drink, smoking, cholesterol values, and triglyceride levels. Excluding these, we will choose other covariates which might not at first seem to be be highly related to hypertension, such as income, and try to see whether they have a potential association with hypertension after all. Based on our interest, we selected 13 covariates for analysis.  
 
 
-Here, we use the `select` function to choose and rename the columns that we want.
+Then, we use the `select` function to choose and rename the columns that we want.
 
 ```{r selectCols}
 hypertension_DF <- dat %>% 
@@ -112,9 +110,8 @@ hypertension = BPQ_2,
 surveyweight = CAPI_WT
 )
 ```
-Here are explanations for these variables, from the codebook  http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf :
+Explanation of variables are presented in [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) we mention above.
 
-Sheena: Can you include a path to the relevant codebook where these definitions came from?
 
 -Non Categorical
 
@@ -179,7 +176,8 @@ The `summary` function tabulates categorical variables and provides summary stat
 ```{r}
 summary(hypertension_DF)
 ```
-We find that certain variables have a large number of NA's; in particular 'drink' has 412 and 'diabetes' has 281. Directly removing rows containing missing data is not desirable considering the large number of such rows, so we decided to look more closely at the missing values. Checking the variable list again, we find another variable 'AlQ_1' : how often did the survey participant drink any type of alcoholic beverage? 0 means they never drink.
+
+We find that certain variables have a large number of NA's; in particular 'drink' has 412 and 'diabetes' has 281. Directly removing rows containing missing data is not desirable considering the large number of such rows, so we decided to look more closely at the missing values. Checking the [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, we find another variable 'AlQ_1' : how often did the survey participant drink any type of alcoholic beverage? 0 means they never drink.
 
 Let's see its distribution with function `table()`.
 
@@ -193,8 +191,6 @@ hypertension_DF$drink[which(dat$ALQ_1==0)] <- 4
 summary(hypertension_DF$drink)
 ```
 With the help of function `which()`, only 6 missing values for 'drink' are left now.
-
-Sheena: what about the diabetes variable? Any idea why there are so many missing values there? Could it be people who don't know if they have diabetes, or something else?
 
 In next step, we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
 
@@ -211,7 +207,7 @@ From the data summaries above, we can see that there are several categorical var
 
 For these variables, it is important for us to adjust the coding, prior to doing any analysis in R, since different numeric values represent nothing but different categories. Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
 
-For example, ` lm()` and ` glm()` will treat numerically-coded categorical variables as continuous variables, which will give the wrong result. Instead, we want to convert these categorical variables to factors. Before doing this, we want to get a better understanding of exactly what values are stored in the different variables. We refer to the codebook to get the correct mapping of the numerical values to the category labels.
+For example, ` lm()` and ` glm()` will treat numerically-coded categorical variables as continuous variables, which will give the wrong result. Instead, we want to convert these categorical variables to factors. Before doing this, we want to get a better understanding of exactly what values are stored in the different variables. We refer to the [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) to get the correct mapping of the numerical values to the category labels.
 
 We can use the `factor` function to convert each variable and assign the correct levels. Any values that are not included in the 'levels' argument will get set to 'NA' values. We also want to think about creating a natural ordering to the factor levels here: the first level will generally be our reference level in a linear model, so it makes sense to try to give them an order that reflects this.
 ```{r recodeFactors}
@@ -302,9 +298,7 @@ p7
 
 `facet_wrap(~ smoking, ncol = 3)` uses the faceting capability to produce a plot with three panels: one panel for each smoking category. Within each panel is a boxplot which characterises the distribution of bmi for each cholesterol catergory within that smoking category. We realize that there is a tendency of increasing bmi from never smoker to current smoker, and the highest bmi values are found in current smokers. This provides a view on the data which is complimentary to the previous boxplot above.
 
-Based on these data visualizations, potential relationship is revealed. So we can choose which varibles we might want to include in our formal statistical modeling. 
-
-Sheena: Can you include some visualizations of additional variables? You would want to do something similar for each variable of interest.
+Based on these data visualizations, potential relationship is revealed. So it is necessary to choose which varibles we might include in the formal statistical modeling. 
 
 
 
@@ -338,11 +332,9 @@ By weighting the observations, we can make the sample better represent the popul
 
 When we have multiple strata on the data, it might be troublesome to calculate the weight. However, for many survey data sets such as ours, the appropriate weight has already been calculated and is included as a variable in the dataset. In our case study, the weight is calculated and we can simply apply this weight and perform a **survey-weighted logistic regression**.
 
-Sheena: For some reason, the text above is centered; please fix.
-
 ### The weights we use
 
-Because the NYC HANES 2013-2014 data have been collected to address a variety of different questions and using different surveys, the researchers who produced the data have employed a somewhat complex weighting scheme to compensate for unequal probability of selection. Five sets of survey weights have been constructed to correspond to different sets of variables that were collected: CAPI  weight, Physical weight, Blood Lab result weight, Urine Lab results weight and Salica Lab results weight. The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst. When an analysis involves variables from different components of the survey, the analyst should decide whether the outcome is inclusive or exclusive, and then choose certain weights [Sheena: Can you clarify what you mean by 'inclusive' vs 'exclusive'? I'm not sure what these terms mean in this context.]. The website (http://nychanes.org/data/) provides guidelines about how to use weights for different purposes, and you can find them through the 'Analytic Guideline' and 'Other Training Materials' links. 
+Because the NYC HANES 2013-2014 data have been collected to address a variety of different questions and using different surveys, the researchers who produced the data have employed a somewhat complex weighting scheme to compensate for unequal probability of selection. Five sets of survey weights have been constructed to correspond to different sets of variables that were collected: CAPI  weight, Physical weight, Blood Lab result weight, Urine Lab results weight and Salica Lab results weight. The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst. When an analysis involves variables from different components of the survey, the analyst should decide whether the outcome is inclusive or exclusive, and then choose certain weights. The website (http://nychanes.org/data/) provides guidelines about how to use weights for different purposes, and you can find them through the [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
 
 As the weight is given in the original dataset, we can use the variable 'surveyweight' directly in our analysis. Here we choose CAPI weight, which should be used to analyze participants responses to all interview questions. All 1527 survey participants have a value for the 'CAPI_WT' variable. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
 
@@ -356,15 +348,13 @@ $$FPC = (\frac{N-n}{N-1})^{\frac{1}{2}}$$
  + n = sample size
 
 
-The finite population correction (FPC) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. If you refer to 'Analytics Guideline' on NYC HANES website,  you can get the value of N and n. Next let's calculate the FPC as below:
+The finite population correction (FPC) is used to reduce the variance when a substantial fraction of the total population of interest has been sampled. Get the value of N and n  on [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). Next let's calculate the FPC as below:
 
 ```{r}
 N <-  6825749
 n <- 1065
 ((N-n)/(N-1))^0.5
 ```
-
-Sheena: Where did the value for N come from?
 
 The FPC of our data set is very close to 1 and in general, you can ingore it. But technically, since the data were collected through sampling without replacement, it is more appropriate to use it.
 
@@ -406,7 +396,7 @@ The arguments are interpreted as the following:
 summary(hypertension_design)
 ```
 
-"Independent sampling design" means our sampling design is a simple random sample (SRS). When the population size is specified (via the fpc argument) it is assumed that the sampling is done without replacement. By setting other parameters you can also specify different kinds of designs, such as stratified or clustered sampling, etc.
+"Independent sampling design" means our sampling design is a simple random sample (SRS). By setting other parameters you can also specify different kinds of designs, such as stratified or clustered sampling, etc.
 
 
 
@@ -421,7 +411,7 @@ svymean(~bmi, hypertension_design)
 mean(DF$bmi)
 std.error(DF$bmi)
 ```
-It seems that there is not a very large difference between these two values and their standard errors. Since this is a simple random sample the difference is not that obvious. But ait will give precision estimates that incorporate the effects of stratification and clustering if you choose more complex sample design. [Sheena: why is this? I'm not quite clear how the mean is calcuated to take the survey design into account, and I think some further explanation here would be helpful.] 
+It seems that there is not a very large difference between these two values and their standard errors. Since this is a simple random sample the difference is not that obvious. But ait will give precision estimates that incorporate the effects of stratification and clustering if you choose more complex sample design. 
 
 To calculate the confidence interval, use function `confint()` directly:
 ```{r}
@@ -446,7 +436,7 @@ Logistic regression is widely used to deal with binary response variable. As we 
 
 It's similar to fitting a normal logistic regression, and the only difference is that instead of using the original data set in the `data` argument, you should input the object from the output of `svydesign()` to the `design` argument in the function.
 
-First, we need to recode our factor output as a 0-1 variable. [Sheena: Is this really necessary? Usually glm will just deal with two-level factors without recoding them.]
+First, we need to recode our factor output as a 0-1 variable. 
 
 ```{r}
 hypertension_design$variables$hypertension <- 
@@ -460,7 +450,7 @@ g <- svyglm(hypertension ~ smoking,
     family = quasibinomial(), design = hypertension_design)
 summ(g,exp = TRUE)
 ```
-`summ()` is an updated version of `summary()`, you can set the arguments to be used in every call to `summ()` in your script/session. Find more informatin via https://www.rdocumentation.org/packages/jtools/versions/2.0.0/topics/set_summ_defaults. Here we would give several options:
+`summ()` is an updated version of `summary()`, you can set the arguments to be used in every call to `summ()` in your script. Here is instruction: https://www.rdocumentation.org/packages/jtools/versions/2.0.0/topics/set_summ_defaults. Here we would give several options:
 
 + `model.info` : Toggles printing of basic information on sample size, name of DV, and number of predictors. If FALSE, these are not printed.
 
@@ -485,15 +475,13 @@ Here we just keep the coefficient table.
 
 One interesting thing is that both the exponentiated coefficients and the p-value for 'smoking' in this model increase sharply! Why will we get this change? Do you remember in section 'Exploary data analysis', we find there is a correlation between 'smoking' and other varables. This finding proves that when adding other variables, influence of former predictor variables are likely to change.
 
-Now, let's interpret the new output. We would like to choose one catergorical variable and one continuous variable:
+Now, let's interpret the new output. One catergorical variable and one continuous variable are chosen as examples:
 
 + smoking: Holding all other variables the same, 'Former smoker' is associated with an odd of getting hypertension of 70% of that for 'Never smoker'; 'Current smoker' is associated with an odd of getting hypertension of 91% of that for 'Never smoker'. 
 
 + bmi: Holding all other variables the same, a unit increase in bmi changes odds by 1.07.
 
-This step is pretty meaningful since it provides us more accurate result. When we try to understand the output, holding all other variables the same is crucial. If we just do analysis based on the simple model, we can not guarantee all other variables keep constant. However, the advantage of full model is that we compare all variables with others stable, maximizing the chance to perform the same level comparison. Therefore our interpretation could be more precise and rational.
-
-Sheena: The summ(g1) object has issues rendering in markdown; I am not sure why. But when I uncomment `summ(g1)` the markdown file no longer renders. Can you play around with this and figure out how to fix it so that a table of the model results can be displayed in the knitted document? Once you have done that, please add a paragraph here describing and interpreting the results that you find from your model. What does the model output tell you about the relationship between your predictor variables and the chance of getting hypertension? I would actually also suggest starting with a more simple model, wiht just one predictor, and write a summary paragraph describing what the model results tell you. This would give a good review of interpreting output of logistic regression models.
+This step is pretty meaningful since it allows us to achieve more accurate result. When we try to understand the output, holding all other variables the same is crucial. If we just do analysis based on the simple model, we can not guarantee all other variables keep constant. However, the advantage of full model is that we compare all variables with others stable, maximizing the chance to perform the same level comparison. Therefore our interpretation could be more precise and rational.
 
 
 
@@ -506,9 +494,6 @@ g2 <- svyglm(hypertension ~
         age+bmi+cholesterol+diabetes+gender+smoking+diet, 
         family=quasibinomial(), design = hypertension_design)
 ```
-
-[Sheena: I am getting a warning when I run this: "Warning message:
-In eval(family$initialize) : non-integer #successes in a binomial glm!" Do you know why?]
 
 Using this model output, we would like to further examine which covariates have the larger influence on hypertension. To do this, we compare their effect sizes in the plot below.
 
@@ -559,7 +544,6 @@ export_summs(g2, g3,exp = TRUE, model.names = c('glm','svyglm'))
 ```
 It is obvious 'diabetes' and 'diet' differ in exponentiated coefficients while that for the others vary slightly. Unlike the simple model, there are too many predict variables in full model and it is cumbersome to compare them one by one. To guarantee a straight perception, we would like to visualize model output rather than show them in a lengthy table. 
 
-Sheena: Include a paragraph here describing the results from this model and making some initial comparisons with the survey-weighted results.
 
 ### Visualization of model output using `plot_summs`
 
