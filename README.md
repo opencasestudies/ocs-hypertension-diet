@@ -4,12 +4,12 @@ Sheena: Update the package list to include all necessary packages
 
 This case study is part of the [OpenCaseStudies]() project. This work is licensed under the Creative Commons Attribution-NonCommercial 3.0 ([CC BY-NC 3.0](https://creativecommons.org/licenses/by-nc/3.0/us/)) United States License.
 
-The libraries used in this study are ` library(tidyverse)`, ` library(knitr)`, ` library(sas7bdat)`, ` library(tableone)`, ` library(knitr)`, ` library(kableExtra)`,` library(survey)`, ` library(broom)`, ` library(multcomp)`, ` library(GGally)`, `library(ggpubr)`, `library(Rmisc)`
+The libraries used in this study are ` library(knitr)`, ` library(ggplot2)`, ` library(ggpubr)`, ` library(ggrepel)`,` library(tableone)`, ` library(kableExtra)`, ` library(survey)`, ` library(broom)`, `library(Rmisc)`, `library(tidyverse)`,`library(haven)`,`library(jtools)`,`library(plotrix)`.
 
 
 ## Risk factors for hypertension using NYC NHANES data
 
-The pathology of hypertension has been found with several medical studies, salt intaking is one of the most important risk factors for having hypertension. Instead of seeing the association of hypertension and salt intake, we focus on other factors that might have the impact on the odds of having hypertension.
+
 The pathology of hypertension has been found with several medical studies, salt intaking is one of the most important risk factors for having hypertension. Instead of seeing the association of hypertension and salt intake, we focus on other factors that might have the impact on the odds of having hypertension.
 
 Moreover, our case study also introduced the logistic regression and survey-weighted logistic regression, focusing on the difference of the two models and obviously survey-weighted logistic regression would be our choice of the model since we are using the survey data and it is weighted.
@@ -27,11 +27,7 @@ The data is downloaded from NYC NHANES (a local version of NHANES), The NYC Heal
 ## Analysis
 
 
-
-Reducing the quality of diet from excellent to good increase the odds of having hypertension by 1.06 ($P < 0.001$), reducing the quality of diet from excellent to fair increase the odds of having hypertension by 1.13 ($P < 0.001$), reducing the quality of diet from excellent to fair reduce the odds of having hypertension by 0.98 ($P < 0.001$) and reducing the quality of diet from average of very good and good to poor increase the odds of having hypertension by 0.97  ($P < 0.001$).
-
-The reduction of diet quality to levels below the current diet quality increase the odds of having hypertension. The excpetion was made by changing from excellent to poor. However, using the average of the very good and good to poor to replace that result, the reduction of the diet quality, on the average, leads to increase in the odds of hypertension substantially.  
-
+To select the most appropriate model, first, survey weight logistic regression (`svyglm`) is applied considering our survey weight data set. Next, we delete several insignificant variables based on their p-value. Then, we compare it with `glm`. In each step we begin with a simple model and then extend to the ideal one, a full model. This is well-grounded since we are able to analyze how the output changes by setting all other variables stable. Finally, we show the result table and visualize the comparison. 
 
 
 
