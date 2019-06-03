@@ -1,6 +1,6 @@
 ---
-title: "Factors that contribute to hypertension"
-author: "Kexin Wang, M.S."
+title: OpenCaseStudies - Identifying factors that contribute to hypertension using NHANES data"
+author: Kexin Wang
 output:
   html_document:
     keep_md: true
@@ -13,16 +13,15 @@ output:
     toc: yes
 ---
 ```{r setup, include=FALSE,warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE,message = FALSE,warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 options(encoding="UTF-8")
 ```
-
 
 ## Motivation
 
 Sheena: Maybe add a little more information about hypertension: how prevalent is it, what is the public health cost of treatment, effect on life expectancy. Just to give some context on why understanding risk factors for hypertension is an important public health question. 
 
-Hypertesion is one of the most common deseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure—that’s 1 in every 3 adults. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of health care services, medications to treat high blood pressure, and missed days of work.
+Hypertesion is one of the most common deseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure???that???s 1 in every 3 adults. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of health care services, medications to treat high blood pressure, and missed days of work.
 
 The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
 
