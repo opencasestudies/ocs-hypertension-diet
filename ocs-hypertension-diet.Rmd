@@ -19,7 +19,7 @@ options(encoding="UTF-8")
 
 ## Motivation
 
-Hypertesion is one of the most common deseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of health care services, medications to treat high blood pressure, and missed days of work.
+Hypertension is one of the most common diseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of healthcare services, medications to treat high blood pressure, and missed days of work.
 
 The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
 
@@ -37,9 +37,9 @@ This case study also introduces logistic regression and survey-weighted logistic
  [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)，
  [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf),
  [Weight Adjustment ](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf),
- [Questionaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf). All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
+ [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf). All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
  
-The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI). From Augest 2013 to June 2014, the survey used a probability sample of non-institutionalized adult New York City residents (ages 20 years or older) to provide representative citywide estimates. For further details, please refer to its website.
+The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI). From August 2013 to June 2014, the survey used a probability sample of non-institutionalized adult New York City residents (ages 20 years or older) to provide representative citywide estimates. For further details, please refer to its website.
 
 
 ### Other Resource
@@ -48,7 +48,7 @@ The NYC HANES is a population-based, cross-sectional study with data collected f
 1. [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx): A program of studies designed to assess the health and nutritional status of adults and children in the United States.
 NYC HANES is a local version of NHANES, which implies it mainly focus on New York area. Modeling on NHANES, NYC HANES collected data from a physical examination and laboratory tests, as well as interviews. 
 2. [R package nhanesA](https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html): This package was developed to enable fully customizable retrieval of data from NHANES, such as load data, list variables in NHANES table. 
-We may not use the package since we don't need to use data from NHANES. If you want to design a research based on NHANES data, this package would be definitiely helpful.
+We may not use the package since we don't need to use data from NHANES. If you want to design a research based on NHANES data, this package would be difinitiely helpful.
 
 ## Data import
 
@@ -277,7 +277,7 @@ The left plot uses `geom_boxplot()` as we did with 'age', but it fails to show t
 
 The next two plots show alternative ways of looking at the relationship between hypertension and gender. This time it works! First, we switch the x-axis and y-axis, to show hypertension as a function of gender, rather than the other way around, as hypertension is our outcome variable of interest. The middle plot shows the count of individuals with and without hypertension for males and females and you can compare the two distributions. But to more clearly see the proportion of people with hypertension among males and females for each level, we use `position='fill'`. The y-axis in the right plot is proportion rather than count. From this visualization, it is clear that a higher proportion of males than females in our dataset have hypertension. 
 
-Then we can apply similiar visualization methods on other variables and find if there exists a realationship between them:
+Then we can apply the same visualization methods on other variables and find if there exists a relationship between them:
 ```{r,fig.width=9,fig.height=5}
 p5 <- ggplot(DF, aes(x = smoking, fill = drink)) + 
   geom_bar(position = "fill")+ggtitle('smoking and drink') + ylab('proportion')
@@ -296,9 +296,9 @@ p7 <- ggplot(DF, aes(x = cholesterol, y = bmi, fill = cholesterol)) +
 p7
 ```
 
-`facet_wrap(~ smoking, ncol = 3)` uses the faceting capability to produce a plot with three panels: one panel for each smoking category. Within each panel is a boxplot which characterises the distribution of bmi for each cholesterol catergory within that smoking category. We realize that there is a tendency of increasing bmi from never smoker to current smoker, and the highest bmi values are found in current smokers. This provides a view on the data which is complimentary to the previous boxplot above.
+`facet_wrap(~ smoking, ncol = 3)` uses the faceting capability to produce a plot with three panels: one panel for each smoking category. Within each panel is a boxplot which characterises the distribution of bmi for each cholesterol category within that smoking category. We realize that there is a tendency of increasing bmi from never smoker to current smoker, and the highest bmi values are found in current smokers. This provides a view on the data which is complementary to the previous boxplot above.
 
-Based on these data visualizations, potential relationship is revealed. So it is necessary to choose which varibles we might include in the formal statistical modeling. 
+Based on these data visualizations, potential relationship is revealed. So it is necessary to choose which variables we might include in the formal statistical modeling. 
 
 
 
@@ -396,7 +396,7 @@ The arguments are interpreted as the following:
 summary(hypertension_design)
 ```
 
-"Independent sampling design" means our sampling design is a simple random sample (SRS). By setting other parameters you can also specify different kinds of designs, such as stratified or clustered sampling, etc.
+"Independent sampling design" means our sampling design is a simple random sample (SRS). By setting other parameters you can also specify different kinds of designs, such as stratified or cluster sampling, etc.
 
 
 
@@ -404,7 +404,7 @@ summary(hypertension_design)
 
 Once we have created our `survey.design` object, we can do further analysis. It is very convenient to use the `svy*` functions which account for survey design features.
 
-To calculate the mean and its standard error, use function `svymean()`. `svymean()` perform weighted estimation, with each observation being weighted rather than direct calculation. We would like to compare the result of traditional way with the help of `mean()` and `std.error()`:
+To calculate the mean and its standard error, use function `svymean()`. `svymean()` perform weighted estimation, with each observation being weighed rather than direct calculation. We would like to compare the result of traditional way with the help of `mean()` and `std.error()`:
 
 ```{r}
 svymean(~bmi, hypertension_design)
@@ -458,7 +458,7 @@ summ(g,exp = TRUE)
 
 + `exp` : If set it as TRUE, you will get the exponentiated coefficients rather than the linear estimates. This option is pretty helpful for exponential family models, such as logistic regression.
 
-What does the model output tells us about the relationship between predictor variables and the chance of getting hypertension? Look at coefficient table. For predictor variable 'smoking', baseline setting is 'Never smoker'. Exponentiated coefficients for 'Former smoker' is 0.56, which means 'Former smoker' is associated with an odd of getting hypertension of 56% of that for 'Never smoker'; Similiarly, 'Current smoker' is associated with an odd of getting hypertension of 69% of that for 'Never smoker'. What's more, we can see the p-value for 'smoking' are all less than 0.05, suggesting their significance in this case.
+What does the model output tells us about the relationship between predictor variables and the chance of getting hypertension? Look at coefficient table. For predictor variable 'smoking', baseline setting is 'Never smoker'. Exponentiated coefficients for 'Former smoker' is 0.56, which means 'Former smoker' is associated with an odd of getting hypertension of 56% of that for 'Never smoker'; Similarly, 'Current smoker' is associated with an odd of getting hypertension of 69% of that for 'Never smoker'. What's more, we can see the p-value for 'smoking' are all less than 0.05, suggesting their significance in this case.
 
 ### Fit a full model
 
@@ -473,9 +473,9 @@ summ(g1,exp = TRUE, model.info = FALSE, model.fit = FALSE)
 
 Here we just keep the coefficient table. 
 
-One interesting thing is that both the exponentiated coefficients and the p-value for 'smoking' in this model increase sharply! Why will we get this change? Do you remember in section 'Exploary data analysis', we find there is a correlation between 'smoking' and other varables. This finding proves that when adding other variables, influence of former predictor variables are likely to change.
+One interesting thing is that both the exponentiated coefficients and the p-value for 'smoking' in this model increase sharply! Why will we get this change? Do you remember in section 'Exploratory data analysis', we find there is a correlation between 'smoking' and other variables. This finding proves that when adding other variables, influence of former predictor variables are likely to change.
 
-Now, let's interpret the new output. One catergorical variable and one continuous variable are chosen as examples:
+Now, let's interpret the new output. One categorical variable and one continuous variable are chosen as examples:
 
 + smoking: Holding all other variables the same, 'Former smoker' is associated with an odd of getting hypertension of 70% of that for 'Never smoker'; 'Current smoker' is associated with an odd of getting hypertension of 91% of that for 'Never smoker'. 
 
@@ -487,7 +487,7 @@ This step is pretty meaningful since it allows us to achieve more accurate resul
 
 ### Model selection
 
-Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigifincant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension when including the other variables in the model. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
+Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigificant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension when including the other variables in the model. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
 
 ```{r,fig.width=7, fig.height=5}
 g2 <- svyglm(hypertension ~ 
@@ -530,7 +530,7 @@ g_svy <- glm(hypertension~ smoking,
           family = binomial(link = 'logit'),data = DF)
 export_summs(g, g_svy,exp = TRUE, model.names = c('glm','svyglm'))
 ```
-`export_summs()` in package `huxtable` is designed to give you the features available in `summ()`. This is particularly useful for putting the results of multiple models into a single table. Exponentiated coefficients, standard error (in the brackets) and other statistic parametes are provided.
+`export_summs()` in package `huxtable` is designed to give you the features available in `summ()`. This is particularly useful for putting the results of multiple models into a single table. Exponentiated coefficients, standard error (in the brackets) and other statistic parameters are provided.
 
 From the output, we see that all of the coefficients value rise. Therefore, compared with those who never smoke, the odds of getting hypertension for former smokers and current smokers also change to 0.67 and 0.73 respectively; Second, standard errors calculated by svyglm are less than that calculated by glm, leading to a more accurate confidence interval; In conclusion, svyglm does better job than glm.
 
@@ -582,16 +582,16 @@ scale=TRUE)+ xlab('confidence interval')
 ```
 
 ```{r, message=FALSE}
-ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
+#ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
-Obviously, 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger differences in confidence intervals comparing the standard glm to the survey-weighted glm restuls, while 'age', 'bmi' and 'gender' have only small differences. 
+Obviously, 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger differences in confidence intervals comparing the standard glm to the survey-weighted glm results, while 'age', 'bmi' and 'gender' have only small differences. 
 
 Different with the result when we compare simple models, the confidence interval computed by `svyglm`(ci_svyglm) is larger than that computed by `glm` (ci_glm). It is strange, isn't it? One possible reason behind this is `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least square estimation, so the standard errors aren't correct in our context. 
 
 
 ## Summary and Results
 
-In this study, we mainly figure out the risk factors that contribute to hypertension and uses logistic regression to deal with binary response variable. Survery weight data is the most important topic in this study. Thus, we apply two approaches to analyze data and compare their results, one is general logistic regression and the other is survey weight logistic regression. 
+In this study, we mainly figure out the risk factors that contribute to hypertension and uses logistic regression to deal with binary response variable. Survey weight data is the most important topic in this study. Thus, we apply two approaches to analyze data and compare their results, one is general logistic regression and the other is survey weight logistic regression. 
 
 To select the most appropriate model, in the first step, survey weight logistic regression (`svyglm`) is applied considering our survey weight data set. Next, we delete several insignificant variables based on their p-value. Then, we compare it with `glm`. In each step we begin with a simple model and then extend to the ideal one, a full model. This is well-grounded since we are able to analyze how the output changes by setting all other variables stable. There is no doubt the same condition is the cornerstone of  precise interpretation.
 
