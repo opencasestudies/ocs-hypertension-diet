@@ -1,8 +1,0 @@
-"0","hypertension <- hypertension_DF$hypertension"
-"0","hypertension <- ifelse(hypertension == 'No',0,1)"
-"0","hypertension_design <- svydesign("
-"0","  id = ~1,"
-"0","  data = hypertension_DF[,-c(1,13)],"
-"0","  weights = ~hypertension_DF$surveyweight,"
-"0","  fpc = ~rep(fpc, nrow(hypertension_DF))"
-"0",")"

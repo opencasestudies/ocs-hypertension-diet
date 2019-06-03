@@ -1,3 +1,0 @@
-"0","p1 <- ggplot(hypertension_DF, aes(x = hypertension, y=age)) + geom_boxplot()+ggtitle('Relationship between hypertension and age')"
-"0","p2 <- ggplot(hypertension_DF, aes(x = hypertension, y=diet)) + geom_boxplot()+ggtitle('Relationship between hypertension and gender')"
-"0","ggarrange(p1,p2)"

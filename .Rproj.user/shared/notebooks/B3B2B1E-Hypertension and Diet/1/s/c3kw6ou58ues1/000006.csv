@@ -1,1 +1,0 @@
-"0","ggplot(hypertension_DF, aes(x = hypertension, fill = gender)) + geom_bar()+ggtitle('Relationship between hypertension and gender')"
