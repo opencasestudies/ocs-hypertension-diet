@@ -46,7 +46,8 @@ for this data set.
 
 </center>
 
-The libraries used in this study are listed in the following table, along with their purpose in this particular case study:
+The libraries used in this study are listed in the following table, 
+along with their purpose in this particular case study:
 
 |Library|Purpose|
 |---|---|
@@ -76,7 +77,7 @@ New York City residents (ages 20 years or older) to provide
 representative citywide estimates. For further details, please refer to 
 its website.
 
-There are other useful resources available on the website including 
+There are other useful resources available on the website including: 
 
 * [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf)
 * [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)
@@ -125,169 +126,238 @@ This data frame contains `r nrow(dat)` observations of `r ncol(dat)`
 different variables. In our analysis, only a subset of the variables 
 will be selected.
 
+
 # Data wrangling
 
-## Select the variables that we are interested in
+## Select the variables (or columns)
 
-This is a survey data set based on interviews or questionnaires with `r ncol(dat)` variables. Some variables are not relevant to our current research question, such as 'LAQ1: What language is being used to conduct this interview'. 
+This is a survey dataset based on interviews or questionnaires
+with `r ncol(dat)` variables. Some variables are not relevant 
+to our current research question, such as 
+_'LAQ1: What language is being used to conduct this interview'_. 
 
-Previous people showed hypertension has relationship with drink, smoking, cholesterol values, and triglyceride levels. Excluding these, we will choose other covariates which might not at first seem to be be highly related to hypertension, such as income, and try to see whether they have a potential association with hypertension after all. Based on our interest, we selected 13 covariates for analysis.  
+Previous people have shown hypertension is associated  with 
+drinking, smoking, cholesterol values, and triglyceride levels. 
+Excluding these variables, we will choose other covariates, which 
+at first might not seem highly related to hypertension, such as 
+income, and try to see whether they have an association with 
+hypertension after all. Here, we selected 13 covariates for our 
+analysis.  
 
-
-Then, we use the `select` function to choose and rename the columns that we want.
+We use the `select()` function from the `dplyr` package
+to choose and rename the columns that we want. 
 
 ```{r selectCols}
-hypertension_DF <- dat %>% 
-  select(
-id = KEY,
-age = SPAGE,
-race = DMQ_14_1,
-gender = GENDER,
-diet = DBQ_1,
-income = INC20K,
-diabetes = DX_DBTS,
-bmi = BMI,
-cholesterol = BPQ_16,
-drink = ALQ_1_UNIT,
-smoking = SMOKER3CAT,
-hypertension = BPQ_2,
-surveyweight = CAPI_WT
-)
+hypertension_df <- 
+  dat %>% 
+    select(id = KEY,
+           age = SPAGE,
+           race = DMQ_14_1,
+           gender = GENDER,
+           diet = DBQ_1,
+           income = INC20K,
+           diabetes = DX_DBTS,
+           bmi = BMI,
+           cholesterol = BPQ_16,
+           drink = ALQ_1_UNIT,
+           smoking = SMOKER3CAT,
+           hypertension = BPQ_2,
+           surveyweight = CAPI_WT)
 ```
-Explanation of variables are presented in [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) we mention above.
+
+For a description of the variables, we refer the reader to the
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf).
 
 
--Non Categorical
+### Non-categorical variables 
 
-  * id: Sample case ID
-  * age: Sample age, range 22-115
-  * bmi: $BMI = kg/m^2$ where kg is a person's weight in kilograms and $m^2$ is their height in meters squared
-  * surveyweight: numeric values associated with each observation to let us know how much weight the observation should receive in our analysis. This variable will be discussed more later.
+There are three non-categorial variables that we will use and 
+the last variable `surveyweight` will be used in the modeling, 
+which we will discuss later on: 
+
+  * `id`: sample case ID
+  * `age`: sample age, range 22-115
+  * `bmi`: BMI = $kg/m^2$ where $kg$ is a person's weight in kilograms and $m^2$ is their height in meters squared
+  * `surveyweight`: numeric values associated with each observation to let us know how much weight the observation should receive in our analysis.
   
--Categorical
+### Categorical variables 
 
-  * race: 
+We will consider ten categorial variables: 
+
+  * `race`: 
     + 100 = White
     + 110 = Black/African American
     + 120 = Indian
     + 140 = Native Hawaiian/Other Pacific Islander
     + 180 = Asian
     + 250 = Other race
-  * gender:
+  * `gender`:
     + 1 = Male
     + 2 = Female
-  * born:
+  * `born`:
     + 1 = Us born
     + 2 = Other country
-  * diet: 
+  * `diet`: 
     + 1 = Excellent
     + 2 = Very good 
     + 3 = Good
     + 4 = Fair
     + 5 = Poor
-  * diabetes: Previously diagnosed with diabetes
+  * `diabetes`: previously diagnosed with diabetes
     + 1 = Diabetic with diagnosis
     + 2 = Diabetic without diagnosis 
     + 3 = Not diabetic
-  * cholesterol: An oil-based substance. If concentrations get too high, it puts people at risk of heart diseases
+  * `cholesterol`: an oil-based substance. If concentrations get too high, it puts people at risk of heart diseases
     + 1 = High cholesterol value
     + 2 = Low cholesterol value
-  * drink: In the past 12 months, how often did sample drink any type of alcoholic beverage
+  * `drink`: In the past 12 months, how often did sample drink any type of alcoholic beverage
     + 1 = Weekly
     + 2 = Monthly
     + 3 = Yearly
-  * smoke: 
+  * `smoke`: 
     + 1 = Never smoker
     + 2 = Current smoker
     + 3 = Former smoker
-  * income:
+  * `income`:
     + 1 = Less than $20,000
     + 2 = $20,000 - $39,999
     + 3 = $40,000 - $59,999
     + 4 = $60,000 - $79,999
     + 5 = $80,000 - $99,999
     + 6 = $100,000 or more
-  * hypertension: Previously diagnosed as having hypertension
+  * `hypertension`: previously diagnosed as having hypertension
     + 1 = Yes
     + 2 = No
     
 ## Initial data inspection
 
-The first step of any data analysis should be to explore the data through data visualizations including tables and summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `head` functions are excellent ways to help you have a quick judgement on the data set.
+The first step of any data analysis should be to explore 
+the data through data visualizations and data summaries, such as
+tables and summary statistics. There are several ways that you 
+can have a glance at your data. Plotting the data or using the 
+`summary()` or `head()` functions in base R are excellent 
+ways to help you have a quick judgement on the data set.
 
-The `summary` function tabulates categorical variables and provides summary statistics for continuous ones, while also including a count of missing values, which can be very important in deciding what variables to consider in downstream analysis.
+The `summary()` function tabulates categorical variables and 
+provides summary statistics for continuous variables, while also 
+including a count of missing values, which can be very important 
+in deciding what variables to consider in downstream analysis.
 
 ```{r}
-summary(hypertension_DF)
+summary(hypertension_df)
 ```
 
-We find that certain variables have a large number of NA's; in particular 'drink' has 412 and 'diabetes' has 281. Directly removing rows containing missing data is not desirable considering the large number of such rows, so we decided to look more closely at the missing values. Checking the [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, we find another variable 'AlQ_1' : how often did the survey participant drink any type of alcoholic beverage? 0 means they never drink.
+We see that certain variables have a large number of `NA`s; in 
+particular `drink` has `r sum(is.na(hypertension_df$drink))` 
+`NA`s and `diabetes` has `r sum(is.na(hypertension_df$diabetes))` 
+`NA`s. Directly removing rows containing missing data is not desirable 
+considering the large number of such rows, so we decided to look more 
+closely at the missing values. Using the 
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, we found another variable `AlQ_1` (how often did the survey participant drink any type of alcoholic beverage), where 0 means they never drink.
 
-Let's see its distribution with function `table()`.
+Let's look at the frequency of counts of the variable with 
+function `table()`.
 
 ```{r}
 table(dat$ALQ_1)
 ```
-The result shows why there are so many missing values for 'drink': Among these 412 missing values, 406 samples never drink and there are just 6 real missing values. Therefore, merging these two variables as one is a better choice to avoid losing too many observations.
+
+Now we see why there are so many missing values for `drink`. 
+Among these `r sum(is.na(hypertension_df$drink))` missing values, 
+`r sum(dat$ALQ_1 == 0, na.rm = TRUE)` samples never drink and 
+there are just 
+`r sum(is.na(hypertension_df$drink)) - sum(dat$ALQ_1 == 0, na.rm = TRUE)`
+actual missing values. Therefore, merging these two variables 
+as one is a better choice to avoid removing too many observations.
 
 ```{r}
-hypertension_DF$drink[which(dat$ALQ_1==0)] <- 4
-summary(hypertension_DF$drink)
+hypertension_df$drink[which(dat$ALQ_1==0)] <- 4
+summary(hypertension_df$drink)
 ```
-With the help of function `which()`, only 6 missing values for 'drink' are left now.
 
-In next step, we aim to remove rows containing missing data with a nice function `drop_na()` in library `tidyr` and store in a new dataframe:
+With the help of function `which()`, only 6 missing 
+values for 'drink' are left now.
+
+In next step, we aim to remove rows containing missing 
+data with the function `drop_na()` in library 
+`tidyr` and store in a new data frame:
 
 ```{r}
-DF <- hypertension_DF %>%
+hy_df <- 
+  hypertension_df %>%
   drop_na()
 ```
 
-This will drop all rows which still contain missing values. Finally we retain `r nrow(DF)` observations of `r ncol(DF)` different variables.
+This will drop all rows which still contain missing values. 
+Finally, we see that we retain `r nrow(hy_df)` observations with
+`r ncol(hy_df)` different variables.
 
 ## Adjust data types
 
-From the data summaries above, we can see that there are several categorical variables like race, gender, born, diet, income, diabetes, BMI, drink, and smoke, which are currently being treated as numerical values.
+From the data summaries above, we can see that there are several 
+categorical variables like `race`, `gender`, `born`, `diet`, `income`, 
+`diabetes`, `bmi`, `drink`, and `smoke`, which are currently being 
+treated as numerical values, but should be treated as factors. 
+Failing to change the type of data from numerical to categorial could
+result in problems in the downstream analysis. 
 
-For these variables, it is important for us to adjust the coding, prior to doing any analysis in R, since different numeric values represent nothing but different categories. Sometimes people forget to change the type of data, and usually, it will give you a totally wrong result.
+For example, the linear model `lm()` and generalized linear model `glm()` 
+functions will treat numerically-coded categorical variables as 
+continuous variables, which will give the wrong result. Instead, 
+we want to convert these categorical variables to factors. Before doing 
+this, we want to get a better understanding of exactly what values 
+are stored in the different variables. We refer to the 
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) to get the correct mapping of the numerical values 
+to the category labels.
 
-For example, ` lm()` and ` glm()` will treat numerically-coded categorical variables as continuous variables, which will give the wrong result. Instead, we want to convert these categorical variables to factors. Before doing this, we want to get a better understanding of exactly what values are stored in the different variables. We refer to the [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) to get the correct mapping of the numerical values to the category labels.
+We can use the `factor()` function in base R to convert each 
+variable and assign the correct levels. Any values that are not 
+included in the `levels` argument will get set to `NA` values. 
+We also want to think about creating a natural ordering to the 
+factor levels here: the first level will generally be our 
+reference level in a linear model, so it makes sense to try
+to give them an order that reflects this.
 
-We can use the `factor` function to convert each variable and assign the correct levels. Any values that are not included in the 'levels' argument will get set to 'NA' values. We also want to think about creating a natural ordering to the factor levels here: the first level will generally be our reference level in a linear model, so it makes sense to try to give them an order that reflects this.
 ```{r recodeFactors}
-DF$race <- factor(DF$race, levels=c(100, 110, 120, 140, 180, 250), 
-labels=c('White', 'Black/African American', 
-'Indian /Alaska Native',
-'Pacific Islander', 'Asian', 'Other Race'))
+hy_df$race <- factor(hy_df$race, 
+                     levels=c(100, 110, 120, 140, 180, 250), 
+                     labels=c('White', 'Black/African American', 
+                              'Indian /Alaska Native', 
+                              'Pacific Islander', 
+                              'Asian', 'Other Race'))
 
-DF$gender <-  factor(DF$gender, levels=c(1,2), 
-labels=c('Male', 'Female'))
+hy_df$gender <-  factor(hy_df$gender, levels=c(1,2), 
+                        labels=c('Male', 'Female'))
 
-DF$diet <-  factor(DF$diet, levels=c(5:1), 
-labels=c('Poor', 'Fair', 'Good', 'Very good','Excellent'))
+hy_df$diet <-  factor(hy_df$diet, levels=c(5:1), 
+                      labels=c('Poor', 'Fair', 'Good', 
+                               'Very good','Excellent'))
 
-DF$income <-  factor(DF$income, levels=c(1:6), 
-labels=c('Less than $20,000','$20,000 - $39,999',
-'$40,000 - $59,999','$60,000 - $79,999',
-'$80,000 - $99,999','$100,000 or more'))
+hy_df$income <-  factor(hy_df$income, levels=c(1:6), 
+                        labels=c('Less than $20,000','$20,000 - $39,999',
+                                 '$40,000 - $59,999','$60,000 - $79,999',
+                                 '$80,000 - $99,999','$100,000 or more'))
 
-DF$diabetes <-  factor(DF$diabetes, levels=c(3,1,2), 
-labels=c('Not diabetic','Diabetic dx','Diabetic but no dx'))
+hy_df$diabetes <-  factor(hy_df$diabetes, levels=c(3,1,2), 
+                          labels=c('Not diabetic','Diabetic dx','Diabetic but no dx'))
 
-DF$cholesterol <-  factor(DF$cholesterol, levels=c(2,1), 
-labels=c('Low value','High value'))
+hy_df$cholesterol <-  factor(hy_df$cholesterol, levels=c(2,1), 
+                             labels=c('Low value','High value'))
 
-DF$drink <-  factor(DF$drink, levels=c(4,1,2,3), 
-labels=c('Never','Weekly', 'Monthly', 'Yearly'))
+hy_df$drink <-  factor(hy_df$drink, levels=c(4,1,2,3), 
+                       labels=c('Never','Weekly', 'Monthly', 'Yearly'))
 
-DF$smoking <-  factor(DF$smoking, levels=c(3:1), 
-labels=c('Never smoker','Former smoker','Current smoker'))
+hy_df$smoking <-  factor(hy_df$smoking, levels=c(3:1), 
+                         labels=c('Never smoker','Former smoker','Current smoker'))
 
-DF$hypertension <-  factor(DF$hypertension, levels=c(2,1), 
-labels=c('No','Yes'))
+hy_df$hypertension <-  factor(hy_df$hypertension, levels=c(2,1), 
+                              labels=c('No','Yes'))
 ```
+
+Now let's look at a summary of our `hy_df` data frame 
+using the `glimpse()` function. 
 ```{r}
-summary(DF)
+glimpse(hy_df)
 ```
 
 
@@ -300,7 +370,7 @@ Plotting numerical data is something you may be familiar with. This time we are 
 First, we try to plot one categorical variable 'hypertension', with one numerical variable 'age'.
 
 ```{r,fig.width=4, fig.height=4}
-p1 <- ggplot(DF, aes(x = hypertension, y=age))+
+p1 <- ggplot(hy_df, aes(x = hypertension, y=age))+
   geom_boxplot()+ggtitle('Distribution of age by hypertension status')
 p1
 ```
@@ -308,11 +378,11 @@ p1
 What about hypertension with gender? Now let's try three different ways to plot the categorical variable 'gender'.
 
 ```{r,fig.width=11,fig.height=5}
-p2 <- ggplot(DF, aes(x = hypertension, y=gender))+ 
+p2 <- ggplot(hy_df, aes(x = hypertension, y=gender))+ 
   geom_boxplot()+ggtitle('distribution of gender')
-p3 <- ggplot(DF, aes(x = gender, fill = hypertension)) + 
+p3 <- ggplot(hy_df, aes(x = gender, fill = hypertension)) + 
   geom_bar()+ggtitle('distribution of hypertension')
-p4 <- ggplot(DF, aes(x = gender, fill = hypertension)) + 
+p4 <- ggplot(hy_df, aes(x = gender, fill = hypertension)) + 
   geom_bar(position = "fill")+ggtitle('distribution of hypertension') + ylab('proportion')
 ggarrange(p2,p3,p4,ncol=3,nrow=1)
 ```
@@ -323,9 +393,9 @@ The next two plots show alternative ways of looking at the relationship between 
 
 Then we can apply the same visualization methods on other variables and find if there exists a relationship between them:
 ```{r,fig.width=9,fig.height=5}
-p5 <- ggplot(DF, aes(x = smoking, fill = drink)) + 
+p5 <- ggplot(hy_df, aes(x = smoking, fill = drink)) + 
   geom_bar(position = "fill")+ggtitle('smoking and drink') + ylab('proportion')
-p6 <- ggplot(DF, aes(x = cholesterol, fill = diabetes)) + 
+p6 <- ggplot(hy_df, aes(x = cholesterol, fill = diabetes)) + 
   geom_bar(position = "fill")+ggtitle('cholesterol and diabetes')+ ylab('proportion')
 
 ggarrange(p5,p6,ncol=2,nrow=1)
@@ -335,7 +405,7 @@ To my mind, these plots are pretty illuminating. From the left plot, we see that
 What if we want to see relationship for more variables? This time we are going to incorporate three variables into the plots. 
 
 ```{r}
-p7 <- ggplot(DF, aes(x = cholesterol, y = bmi, fill = cholesterol)) +
+p7 <- ggplot(hy_df, aes(x = cholesterol, y = bmi, fill = cholesterol)) +
   geom_boxplot() +facet_wrap(~ smoking, ncol = 3)
 p7
 ```
@@ -423,17 +493,17 @@ Now we use some options to create the design relative to our dataset:
 hypertension_design <- svydesign(
   id = ~1,
   #fpc = ~rep(N,n),
-   weights = ~DF$surveyweight,
-  data = DF[,-c(1,13)]
+   weights = ~hy_df$surveyweight,
+  data = hy_df[,-c(1,13)]
 )
 ```
 The arguments are interpreted as the following:
 
 + `ids = ~1` means there is no clustering.
 
-+ `data = DF[,-c(1,13)]` tells `svydesign` where to find the actual data.
++ `data = hy_df[,-c(1,13)]` tells `svydesign` where to find the actual data.
 
-+ `weights= ~DF$surveyweight` tells it where to find the weight.
++ `weights= ~hy_df$surveyweight` tells it where to find the weight.
 
 `summary()` shows the results:
 ```{r}
@@ -452,8 +522,8 @@ To calculate the mean and its standard error, use function `svymean()`. `svymean
 
 ```{r}
 svymean(~bmi, hypertension_design)
-mean(DF$bmi)
-std.error(DF$bmi)
+mean(hy_df$bmi)
+std.error(hy_df$bmi)
 ```
 It seems that there is not a very large difference between these two values and their standard errors. Since this is a simple random sample the difference is not that obvious. But ait will give precision estimates that incorporate the effects of stratification and clustering if you choose more complex sample design. 
 
@@ -571,7 +641,7 @@ What would happen in this case if we were to use standard logistic regression?
 
 ```{r}
 g_svy <- glm(hypertension~ smoking, 
-          family = binomial(link = 'logit'),data = DF)
+          family = binomial(link = 'logit'),data = hy_df)
 export_summs(g, g_svy,exp = TRUE, model.names = c('glm','svyglm'))
 ```
 `export_summs()` in package `huxtable` is designed to give you the features available in `summ()`. This is particularly useful for putting the results of multiple models into a single table. Exponentiated coefficients, standard error (in the brackets) and other statistic parameters are provided.
@@ -582,7 +652,7 @@ In the next step, let's compare the full model designed by these two methods.
 
 ```{r}
 g3 <- glm(hypertension~ age+bmi+cholesterol+diabetes+gender+smoking+diet, 
-          family = binomial(link = 'logit'),data = DF)
+          family = binomial(link = 'logit'),data = hy_df)
 export_summs(g2, g3,exp = TRUE, model.names = c('glm','svyglm'))
 
 ```
