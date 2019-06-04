@@ -15,7 +15,7 @@ output:
 ```{r setup, include=FALSE,warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
                       warning = FALSE)
-options(encoding = 'UTF-8')
+options(digits = 2)
 ```
 
 # Motivation
@@ -37,9 +37,10 @@ This case study also introduces logistic regression and
 survey-weighted logistic regression, focusing on the comparison
 between them. The plot below summarizes the results from this analysis 
 illustrating that the standard error of coefficients calculated by the 
-two models (logistic regression and survey-weighted logistic regression)
-are different. We will discuss below which model is a better choice 
-for this data set. 
+two models ([logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) 
+and [survey-weighted logistic regression]())
+are different. We will discuss later which model is a better choice 
+for this dataset. 
 
 <center>
 ![](data/FinalPlot.png)
@@ -50,12 +51,27 @@ The libraries used in this study are listed in the following table,
 along with their purpose in this particular case study:
 
 |Library|Purpose|
-|---|---|
-|`ggplot2`| Add here.|
+|---|--------------------------------------------------------------------------------------------------------------|
+|`ggplot2`| A system for declaratively creating graphics|
+|`ggpubr`|Provides some easy-to-use functions for creating and customizing 'ggplot2'- based publication ready plots|
+|`ggrepel`|Provides text and label geoms for 'ggplot2' that help to avoid overlapping text labels|
+|`tidyverse`|A coherent system of packages for data manipulation, exploration and visualization |
+|`kableExtra`|Help you build common complex tables and manipulate table styles, such as create awesome HTML table|
+|`survey`|Provides useful functions to help you analyze complex survey sample|
+|`haven`|A useful tool to import and export files from SAS, STATA, and SPSS|
+|`jtools`|Provides some functions to understand and sharethe results of (primarily) regression analyses efficiently|
+|`plotrix`|Lots of plots, various labeling, axis and color scaling functions|
+|`huxtable`|An R package to create LaTeX and HTML tables, with a friendly, modern interface|
+|`ggstance`|Provides flipped components: horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
+
 
 In order to run this code please ensure you have these packages installed. 
 
-The learning objectives for this case study include .... 
+The learning objectives for this case study include:
+  * data visualization
+  * logistic regression
+  * survey weight analysis
+  * choose weight for unbalanced data
 
 # What is the data?
 
@@ -79,15 +95,24 @@ its website.
 
 There are other useful resources available on the website including: 
 
-* [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf)
-* [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)
-* [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf)
-* [Weight Adjustment](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf)
+* [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf): 
+help data users navigate how best to analyze the NYC HANES 2013-14 dataset,given its population-based 
+and clustered sampling scheme.
+* [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf): 
+provide overall guidance on the use of the NYC HANES 2013-14 dataset and statistical weights, 
+as well as other analytic issues pertaining to assessing statistical reliability of estimates.
+* [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf): 
+describe the component of the study the variables come from.
+* [Weight Adjustment](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf): 
+explain how NYC HANES data are weighted in order to compensate for unequal probability of selection. 
+It also teaches you how to choose the right weight.
 * [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf)
 
-All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
+All of them enable data users to understand the meaning and encoding of the variables better, 
+and then complete the analysis more efficiently.
  
-The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI).
+The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination 
+and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI).
 
 # Data import
 
@@ -98,12 +123,9 @@ library(knitr)
 library(ggplot2)
 library(ggpubr)
 library(ggrepel)
-library(tableone)
+library(tidyverse)
 library(kableExtra)
 library(survey)
-library(broom)
-library(Rmisc)
-library(tidyverse)
 library(haven)
 library(jtools)
 library(plotrix)
@@ -115,11 +137,12 @@ to create a [tibble](https://tibble.tidyverse.org)
 (or `tbl_df`) in R. Tibbles are nice because they do not change variable 
 names or data types, and they have an enhanced `print()` method which
 makes them easier to use with large datasets containing complex objects. 
-The [`haven` library]() is useful to import and export files from 
-SAS, STATA, and SPSS. 
+The [`haven` library](https://www.rdocumentation.org/packages/haven/versions/2.1.0) 
+is useful to import and export files from 
+[SAS, STATA, and SPSS](http://stanfordphd.com/Statistical_Software.html). 
 
 ```{r read-data}
-dat <- read_sas('./data/dat.sas7bdat')
+dat <- read_sas('./data/d.sas7bdat')
 ```
 
 This data frame contains `r nrow(dat)` observations of `r ncol(dat)` 
@@ -146,6 +169,19 @@ analysis.
 
 We use the `select()` function from the `dplyr` package
 to choose and rename the columns that we want. 
+
+To show how the renaming of the column names works, I will give a simple example.
+
+```{r}
+rename <- 
+  dat %>% 
+    select(id = KEY,
+           race = DMQ_14_1,
+           diabetes = DX_DBTS)
+colnames(rename)
+```
+Undoubtedly, compared with DMQ_14_1 and DX_DBTS, 
+race and diabetes are more readable and more easily to understand.
 
 ```{r selectCols}
 hypertension_df <- 
@@ -253,7 +289,9 @@ particular `drink` has `r sum(is.na(hypertension_df$drink))`
 `NA`s. Directly removing rows containing missing data is not desirable 
 considering the large number of such rows, so we decided to look more 
 closely at the missing values. Using the 
-[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, we found another variable `AlQ_1` (how often did the survey participant drink any type of alcoholic beverage), where 0 means they never drink.
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, 
+we found another variable `AlQ_1` (how often did the survey participant drink any type of alcoholic beverage), 
+where 0 means they never drink.
 
 Let's look at the frequency of counts of the variable with 
 function `table()`.
@@ -274,9 +312,10 @@ as one is a better choice to avoid removing too many observations.
 hypertension_df$drink[which(dat$ALQ_1==0)] <- 4
 summary(hypertension_df$drink)
 ```
+We label those who never drink as 4 so now they are another new catergory in the dataset.
 
 With the help of function `which()`, only 6 missing 
-values for 'drink' are left now.
+values for `drink` are left now.
 
 In next step, we aim to remove rows containing missing 
 data with the function `drop_na()` in library 
@@ -307,7 +346,8 @@ continuous variables, which will give the wrong result. Instead,
 we want to convert these categorical variables to factors. Before doing 
 this, we want to get a better understanding of exactly what values 
 are stored in the different variables. We refer to the 
-[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) to get the correct mapping of the numerical values 
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) 
+to get the correct mapping of the numerical values 
 to the category labels.
 
 We can use the `factor()` function in base R to convert each 
@@ -405,6 +445,8 @@ p4 <- hy_df %>%
           ylab('proportion')
 ggarrange(p2, p3, p4, ncol=3, nrow=1)
 ```
+`ggarrange()` in [package `ggpubr`](https://www.rdocumentation.org/packages/ggpubr/versions/0.2) 
+is to arrange multiple ggplots on the same page. 
 
 The left plot uses `geom_boxplot()` as we did with `age`, but 
 it fails to show the relationship! Boxplots are not what we want 
@@ -556,13 +598,12 @@ Urine Lab results weight and Salica Lab results weight.
 When an analysis involves variables from different components
 of the survey, the analyst should decide whether the outcome 
 is inclusive or exclusive, and then choose certain weights. 
-The website (http://nychanes.org/data/) provides guidelines 
-about how to use weights for different purposes, and you 
-can find them through the 
+To learn how to use weights for different purposes, and you 
+are suggested to go through
 [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
 
 As the weight is given in the original dataset, we can use 
-the variable 'surveyweight' directly in our analysis. Here,
+ `surveyweight` directly in our analysis. Here,
 we choose CAPI weight, which should be used to analyze 
 participants responses to all interview questions. All of our 
 survey participants have a value for the `CAPI_WT` variable. 
@@ -594,8 +635,9 @@ are sampling a sufficiently large proportion of the population),
 then you might sample the same persion twice. The finite 
 population correction (FPC) is used to reduce the variance when
 a substantial fraction of the total population of interest has 
-been sampled. We got the value of `N` and `n` on the 
-[Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). Next let's calculate the FPC as below:
+been sampled. We got the value of `N` and `n` on the
+[Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
+Next let's calculate the FPC as below:
 
 ```{r}
 N <-  6825749
@@ -613,8 +655,8 @@ it is more appropriate to use it.
 We now need to figure out how to specify the survey design 
 and incorporate our sampling weights in our modeling steps. 
 To help us do this, we use thefunction `svydesign()` in 
-the R package `survey`. This function combines a data 
-frame and all the design information needed to specify 
+[package `survey`](https://cran.r-project.org/web/packages/survey/survey.pdf).
+This function combines a data frame and all the design information needed to specify 
 a survey design. Here is the list of options provided 
 in this function:
 
@@ -719,6 +761,8 @@ little higher for females compared to males.
 
 ### Fit a simple model
 
+$logit(p)= log(\frac{p}{1-p)})=X^{T}\beta$, where $p=P(Y=1)=E(Y)$ 
+
 Logistic regression is widely used to deal with binary response 
 variable. As we mentioned above, our dataset is a survey dataset, 
 and we need to take survey weights into account, so therefore we 
@@ -748,12 +792,13 @@ g <- svyglm(hypertension ~ smoking,
 ```
 
 ```{r}
-summ(g,exp = TRUE)
+summ(g,exp = TRUE,model.info = FALSE, model.fit = FALSE)
 ```
 
 The `summ()` function is an updated version of `summary()`, where 
 you can set the 
-[arguments](https://www.rdocumentation.org/packages/jtools/versions/2.0.0/topics/set_summ_defaults) to be used in every call to `summ()` 
+[arguments](https://www.rdocumentation.org/packages/jtools/versions/2.0.0/topics/set_summ_defaults) 
+to be used in every call to `summ()` 
 in your script. Here are several options:
 
 * `model.info` : Toggles printing of basic information on sample size, name of DV, and number of predictors. If FALSE, these are not printed.
@@ -767,12 +812,12 @@ What does the model output tells us about the relationship
 between predictor variables and the chance of getting hypertension? 
 Look at coefficient table. For predictor variable `smoking`,
 baseline setting is 'Never smoker'. Exponentiated coefficients
-for 'Former smoker' is 0.56, which means 'Former smoker' 
-is associated with an odds of getting hypertension of 56% 
+for 'Former smoker' is `r summ(g,exp = TRUE)$coeftable[2,1]`, 
+which means 'Former smoker' is associated with an odds of getting hypertension of 56% 
 of that for 'Never smoker'; Similarly, 'Current smoker' is 
 associated with an odds of getting hypertension of 69% 
 of that for 'Never smoker'. What's more, we can see the 
-p-value for 'smoking' are all less than 0.05, suggesting 
+p-value for `smoking` are all less than 0.05, suggesting 
 their significance in this case.
 
 ### Fit a full model
@@ -796,7 +841,7 @@ One interesting thing is that both the exponentiated
 coefficients and the p-value for `smoking` in this model 
 increase sharply! Why will we get this change? 
 
-Do you remember in section 'Exploratory data analysis', we found
+Do you remember in section Exploratory data analysis, we found
 there was a correlation between `smoking` and other variables.
 This finding proves that when adding other variables, 
 influence of former predictor variables are likely to change.
@@ -804,9 +849,14 @@ influence of former predictor variables are likely to change.
 Now, let's interpret the new output. One categorical
 variable and one continuous variable are chosen as examples:
 
-* `smoking`: Holding all other variables the same, 'Former smoker' is associated with an odd of getting hypertension of 70% of that for 'Never smoker'; 'Current smoker' is associated with an odd of getting hypertension of 91% of that for 'Never smoker'. 
+* `smoking`: Holding all other variables the same, 'Former smoker' 
+is associated with an odd of getting hypertension 
+of `r summ(g1,exp = TRUE)$coeftable[25,1]` of that for 'Never smoker'; 
+'Current smoker' is associated with an odd of getting hypertension 
+of `r summ(g1,exp = TRUE)$coeftable[26,1]` of that for 'Never smoker'. 
 
-* `bmi`: Holding all other variables the same, a unit increase in bmi changes odds by 1.07.
+* `bmi`: Holding all other variables the same, a unit increase in bmi 
+changes odds by `r summ(g1,exp = TRUE)$coeftable[20,1]`.
 
 This step is pretty meaningful since it allows us to achieve 
 more accurate result. When we try to understand the output,
@@ -822,17 +872,19 @@ Therefore our interpretation could be more precise and rational.
 
 Not all variables in our model `g1` are significant, so we would 
 like to remove some of them to get a reduced model. We find 
-'race','income', 'diet','drink' and 'smoke' are not that 
-sigificant. Contrary to our common sense, 'diet','drink' and 
-'smoke' have minimum influence on hypertension when including
+`race`,`income`, `diet`,`drink` and `smoking` are not that 
+sigificant. Contrary to our common sense, `diet`,`drink` and 
+`smoking` have minimum influence on hypertension when including
 the other variables in the model. We believe this is because 
 that their influence may be explained by other covariates, 
-such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
+such as `bmi`. Therefore, here we just remove `race` and `income`.
 
 ```{r,fig.width=7, fig.height=5}
 g2 <- svyglm(hypertension ~ 
-        age+bmi+cholesterol+diabetes+gender+smoking+diet, 
-        family=quasibinomial(), design = hypertension_design)
+        age + bmi + cholesterol + diabetes + gender +
+        smoking + diet, 
+        family = quasibinomial(), 
+        design = hypertension_design)
 ```
 
 Using this model output, we would like to further examine 
@@ -840,17 +892,17 @@ which covariates have the larger influence on hypertension.
 To do this, we compare their effect sizes in the plot below.
 
 ```{r}
-s <- data.frame('c'=exp(g2$coefficients[2:12]),
-                'n'=names(g2$coefficients)[2:12])
+s <- data.frame('c' = exp(g2$coefficients[2:12]),
+                'n' = names(g2$coefficients)[2:12])
 s <- s[order(s$c),]
-l=seq(from=2, to=12, by=1)
+l = seq(from = 2, to = 12, by = 1)
 
-plt<- ggplot(s,aes(x = l, y=c,col=s$c)) + 
-  geom_point(size=5)+ 
+plt<- ggplot(s, aes(x = l, y = c,col = s$c)) + 
+  geom_point(size = 5)  + 
   scale_colour_gradient(low ='pink', high = 'darkred')+
-  geom_hline(yintercept = 1,col='pink',size=1.5,linetype=2)+
-  theme_bw() + theme(plot.title = element_text(hjust = 2,vjust=-2))+
-  geom_text_repel(aes(y = c,label=n),col='darkred')+
+  geom_hline(yintercept = 1,col = 'pink',size = 1.5, linetype = 2)+
+  theme_bw() + theme(plot.title = element_text(hjust = 2, vjust = -2))+
+  geom_text_repel(aes(y = c,label = n), col = 'darkred')+
   ggtitle("Effect on Hypertension") + 
   ylab("Odds Ratio") + 
   xlab("Features")+
@@ -885,12 +937,14 @@ logistic regression using `glm()` instead of `svyglm()`?
 
 ```{r}
 g_svy <- glm(hypertension ~ smoking, 
-          family = binomial(link = 'logit'), data = hy_df)
+          family = binomial(link = 'logit'), 
+          data = hy_df)
 export_summs(g, g_svy, exp = TRUE, 
              model.names = c('glm', 'svyglm'))
 ```
 
-`export_summs()` in package `huxtable` is designed to give 
+`export_summs()` in [package `huxtable`](https://cran.r-project.org/web/packages/huxtable/index.html) 
+is designed to give 
 you the features available in `summ()`. This is particularly
 useful for putting the results of multiple models into a 
 single table. Exponentiated coefficients, standard error 
@@ -899,7 +953,8 @@ single table. Exponentiated coefficients, standard error
 From the output, we see that all of the coefficients value 
 rise. Therefore, compared with those who never smoke, the 
 odds of getting hypertension for former smokers and current
-smokers also change to 0.67 and 0.73 respectively; Second, 
+smokers also change to `r summ(g_svy,exp = TRUE)$coeftable[2,1]` 
+and `r summ(g_svy,exp = TRUE)$coeftable[3,1]` respectively; Second, 
 standard errors calculated by svyglm are less than that 
 calculated by glm, leading to a more accurate confidence 
 interval; In conclusion, svyglm does better job than glm.
@@ -908,12 +963,14 @@ In the next step, let's compare the full model designed
 by these two methods. 
 
 ```{r}
-g3 <- glm(hypertension~ age+bmi+cholesterol+diabetes+gender+smoking+diet, 
-          family = binomial(link = 'logit'),data = hy_df)
+g3 <- glm(hypertension ~ 
+            age + bmi + cholesterol + diabetes + gender +
+            smoking + diet, 
+          family = binomial(link = 'logit'),
+          data = hy_df)
 export_summs(g2, g3,exp = TRUE, model.names = c('glm','svyglm'))
-
 ```
-It is obvious 'diabetes' and 'diet' differ in exponentiated 
+It is obvious `diabetes` and `diet` differ in exponentiated 
 coefficients while that for the others vary slightly. 
 Unlike the simple model, there are too many predict
 variables in full model and it is cumbersome to compare 
@@ -924,8 +981,9 @@ them in a long table.
 
 ## Visualization of model outputs
 
-The function `plot_summs()`, which is provided by library 
-`jtools`, plots regression coefficients and their associated
+The function `plot_summs()`, which is provided by [package 
+`jtools`](https://cran.r-project.org/web/packages/jtools/index.html), 
+plots regression coefficients and their associated
 uncertainties (confidence intervals) in a visually appealing
 way. One especially useful thing in our setting is that you 
 can do the same procedure for multiple models simultaneously, 
@@ -948,26 +1006,29 @@ The label names are default setting, but to make it more readable,
 we can specify the label names via `coefs=`.
 
 ```{r}
-plot_summs(g2,g3,
-coefs = c('age'='age','bmi'='bmi', 'cholesterol'='cholesterol',
-'diabetic with diagnosis'='diabetesDiabetic dx',
-'diabetic without diagnosis'='diabetesDiabetic but no dx',
-'gender'='gender','former smoker'='smokingFormer smoker',
-'current smoker'='smokingCurrent smoker',
-'fair diet'='dietFair','good diet'='dietGood',
-'very good diet'='dietVery good','excellent diet'='dietExcellent'),
+plot_summs(g2, g3,
+coefs = c('age' = 'age','bmi' = 'bmi', 
+'cholesterol' = 'cholesterol',
+'diabetic with diagnosis' = 'diabetesDiabetic dx',
+'diabetic without diagnosis' = 'diabetesDiabetic but no dx',
+'gender' = 'gender',
+'former smoker' = 'smokingFormer smoker',
+'current smoker' = 'smokingCurrent smoker',
+'fair diet' = 'dietFair','good diet' = 'dietGood',
+'very good diet' = 'dietVery good',
+'excellent diet' = 'dietExcellent'),
  model.names = c("svyglm", "glm"), 
-scale=TRUE)+ xlab('95% confidence interval')
+scale = TRUE) + xlab('95% confidence interval')
 
 ```
 
 ```{r, message=FALSE}
 #ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
-Obviously, 'cholesterol', 'diabetes', 'smoke' and 'drink' 
+Obviously, `cholesterol`, `diabetes`, `smoking` and `drink`
 have larger differences in confidence intervals comparing 
 the standard glm to the survey-weighted glm results, while 
-'age', 'bmi' and 'gender' have only small differences. 
+`age`, `bmi` and `gender` have only small differences. 
 
 Different with the result when we compare simple models,
 the confidence interval computed by `svyglm` (ci_svyglm) 
@@ -1001,9 +1062,9 @@ the same condition is the cornerstone of precise interpretation.
 In output interpretation, we have taught you how to analyze 
 the odds of getting hypertension with one categorical variable
 example and one numerical variable example. Besides, we find
-'diabetes' and 'cholesterol' have strong positive effects on 
+`diabetes` and `cholesterol` have strong positive effects on 
 the probability of getting hypertension. And confidence intervals 
-for 'cholesterol', 'diabetes' ,'smoke' and 'drink' have obvious 
+for `cholesterol`, `diabetes`,`smoking` and `drink` have obvious 
 difference. It is wired that in simple model, `ci_svyglm` is shorter
 than `ci_glm` while in full model the results change to the opposite. 
 One potential explanation is the incompleteness of `glm`. But 
