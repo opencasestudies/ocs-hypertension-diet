@@ -1,5 +1,5 @@
 ---
-title: OpenCaseStudies - Identifying factors that contribute to hypertension using NHANES data"
+title: OpenCaseStudies - Identifying factors that contribute to hypertension using NHANES data
 author: Kexin Wang
 output:
   html_document:
@@ -13,48 +13,86 @@ output:
     toc: yes
 ---
 ```{r setup, include=FALSE,warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE)
 options(encoding="UTF-8")
 ```
 
-## Motivation
+# Motivation
 
-Hypertension is one of the most common diseases in the world and it puts you at the risk of myocardial infarction, stroke, renal failure, and death if not detected early and treated appropriately. About 75 million American adults (32%) have high blood pressure. Besides, High blood pressure costs the nation $48.6 billion each year. This total includes the cost of healthcare services, medications to treat high blood pressure, and missed days of work.
+Hypertension is one of the most common diseases in the world. 
+It has been associated with myocardial infarction, stroke, renal 
+failure, and death if not detected early and treated appropriately.
+Around 75 million American adults (32%) are estimated to have 
+high blood pressure, costing the US around $48.6 billion 
+each year. This total includes the cost of healthcare services, 
+medications to treat high blood pressure, and missed days of work.
 
-The link between hypertension and some physical measurements has been well-established in previous studies. In this case study, moving beyond the traditional aspects, we will explore other risk factors and their potential influence on hypertension.
+The link between hypertension and some physical measurements has 
+been well-established in previous studies. In this case study, 
+moving beyond the traditional aspects, we will explore other risk 
+factors and their potential influence on hypertension.
 
-This case study also introduces logistic regression and survey-weighted logistic regression, focusing on the comparison between them. The result plot indicates that standard error of coefficients calculated by logistic regression are different. We will discuss below which model is a better choice for this data set. 
+This case study also introduces logistic regression and 
+survey-weighted logistic regression, focusing on the comparison
+between them. The plot below summarizes the results from this analysis 
+illustrating that the standard error of coefficients calculated by the 
+two models (logistic regression and survey-weighted logistic regression)
+are different. We will discuss below which model is a better choice 
+for this data set. 
 
 <center>
 ![](data/FinalPlot.png)
 
 </center>
 
-## What is the data?
+The libraries used in this study are listed in the following table, along with their purpose in this particular case study:
 
- [NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/data/): NYC HANES Analytics Datasets is downloaded here. Other useful resources can be found through it, such as :
- [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf)，
- [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)，
- [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf),
- [Weight Adjustment ](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf),
- [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf). All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
+|Library|Purpose|
+|---|---|
+|`ggplot2`| Add here.|
+
+In order to run this code please ensure you have these packages installed. 
+
+The learning objectives for this case study include .... 
+
+# What is the data?
+
+For this case study, we will use the New York City (NYC)
+[Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/data/), 
+modeled on the 
+[National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx). 
+NHANES is a population-based, cross-sectional study with data collected 
+from a physical examination and laboratory tests, as well as a face-to-face 
+interview and an audio computer-assisted self-interview (ACASI). It is 
+designed to assess the health and nutritional status of adults and children 
+in the United States. NYC HANES is a local version of NHANES, which implies 
+it mainly focus on New York area. 
+
+The data we will use was collected from August 2013 to June 2014 and is called the 
+[NYC HANES 2013-14 Blood Pressure Data](). 
+The survey used a probability sample of non-institutionalized adult 
+New York City residents (ages 20 years or older) to provide 
+representative citywide estimates. For further details, please refer to 
+its website.
+
+There are other useful resources available on the website including 
+
+* [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf)
+* [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf)
+* [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf)
+* [Weight Adjustment](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf)
+* [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf)
+
+All of them enable data users to understand the meaning and encoding of the variables better, and then complete the analysis more efficiently.
  
-The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI). From August 2013 to June 2014, the survey used a probability sample of non-institutionalized adult New York City residents (ages 20 years or older) to provide representative citywide estimates. For further details, please refer to its website.
+The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI).
 
+# Data import
 
-### Other Resource
+Before doing anything, we should load the libraries needed for the case study.
 
-
-1. [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx): A program of studies designed to assess the health and nutritional status of adults and children in the United States.
-NYC HANES is a local version of NHANES, which implies it mainly focus on New York area. Modeling on NHANES, NYC HANES collected data from a physical examination and laboratory tests, as well as interviews. 
-2. [R package nhanesA](https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html): This package was developed to enable fully customizable retrieval of data from NHANES, such as load data, list variables in NHANES table. 
-We may not use the package since we don't need to use data from NHANES. If you want to design a research based on NHANES data, this package would be difinitiely helpful.
-
-## Data import
-
-### Load packages
-Since this is the first R code chunk, we will load the necessary libraries.
-```{r libraryLoad, warning=FALSE, message=FALSE}
+```{r library-load}
 library(knitr)
 library(ggplot2)
 library(ggpubr)
@@ -70,20 +108,26 @@ library(jtools)
 library(plotrix)
 ```
 
+The NYC HANES data file we are working with is a SAS formatted file so 
+we would like to use the function `read_sas()` from the `haven` library 
+to create a [tibble](https://tibble.tidyverse.org) 
+(or `tbl_df`) in R. Tibbles are nice because they do not change variable 
+names or data types, and they have an enhanced `print()` method which
+makes them easier to use with large datasets containing complex objects. 
+The [`haven` library]() is useful to import and export files from 
+SAS, STATA, and SPSS. 
 
-### Load data
-
-The NYC HANES data file we are working with is a SAS formatted file so we would like to use the function `read_sas` from the `haven` library to read it into a data frame in R. The `haven` library is useful to import and export 'SAS', 'STATA', and 'SPSS' files.
-
-```{r readData}
+```{r read-data}
 dat <- read_sas('./data/dat.sas7bdat')
 ```
 
-This data frame contains `r nrow(dat)` observations of `r ncol(dat)` different variables. In our analysis, only a subset of the variables will be selected.
+This data frame contains `r nrow(dat)` observations of `r ncol(dat)` 
+different variables. In our analysis, only a subset of the variables 
+will be selected.
 
-## Data wrangling
+# Data wrangling
 
-### Select the variables that we are interested in
+## Select the variables that we are interested in
 
 This is a survey data set based on interviews or questionnaires with `r ncol(dat)` variables. Some variables are not relevant to our current research question, such as 'LAQ1: What language is being used to conduct this interview'. 
 
@@ -167,7 +211,7 @@ Explanation of variables are presented in [Variable Codebook](http://nychanes.or
     + 1 = Yes
     + 2 = No
     
-### Initial data inspection
+## Initial data inspection
 
 The first step of any data analysis should be to explore the data through data visualizations including tables and summary statistics. There are several ways that you can have a glance at your data. Plotting the data or using the `summary` or `head` functions are excellent ways to help you have a quick judgement on the data set.
 
@@ -201,7 +245,7 @@ DF <- hypertension_DF %>%
 
 This will drop all rows which still contain missing values. Finally we retain `r nrow(DF)` observations of `r ncol(DF)` different variables.
 
-### Adjust data types
+## Adjust data types
 
 From the data summaries above, we can see that there are several categorical variables like race, gender, born, diet, income, diabetes, BMI, drink, and smoke, which are currently being treated as numerical values.
 
@@ -247,7 +291,7 @@ summary(DF)
 ```
 
 
-## Exploratory data analysis
+# Exploratory data analysis
 
 Some simple data visualizations will help you to take a first look at the data and provide much information about how the different variables are related to one another. Plots can indicate the trends or patterns in the distributions of variables you are interested in, and inspire you in terms of the the next steps in your data analysis. For our visualizations, we will mainly use the package `ggplot2`, a powerful tool for data visualization. A link for its cheat sheet is here: https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf.
 
@@ -302,7 +346,7 @@ Based on these data visualizations, potential relationship is revealed. So it is
 
 
 
-## Data analysis
+# Data analysis
 
 Now that we have spent some time cleaning and looking at visualizations of our data, we can consider using a statistical model to address our question of interest about which of the factors we are considering are related to risk of hypertension.
 
@@ -312,7 +356,7 @@ It is possible, and indeed often happens even with a perfectly designed sampling
 
 
 
-### How are survey weights determined?
+## How are survey weights determined?
 
 
 Suppose that you have 25 students (20 male and 5 female) in your class, and you want to talk with 5 of them to gauge their understanding of the biostatistics class. By sampling 5 students from the total 25 students, you might get 5 all female students or 4 female and 1 male in your sample. Do you expect this sample to represent the population? Definitely not since there is a higher proportion of females in the sample than the population. We can correct for this by weighting our samples so that, taken together, they better reflect the composition of the population we are generalizing to. 
@@ -338,7 +382,7 @@ Because the NYC HANES 2013-2014 data have been collected to address a variety of
 
 As the weight is given in the original dataset, we can use the variable 'surveyweight' directly in our analysis. Here we choose CAPI weight, which should be used to analyze participants responses to all interview questions. All 1527 survey participants have a value for the 'CAPI_WT' variable. We define hypertension as the prior diagnosis of high blood pressure, so we should use the most inclusive one, CAPI weight, to get an inclusive outcome. 
 
-### What is the finite population correction factor?
+## What is the finite population correction factor?
 
 Now that we have discussed how to weight our samples, there is one more technical detail that we need to address when using survey data. Many methods for analysis of survey data make the assumption that samples were collected using sampling with replacement, i.e., any time a sample is drawn, each person in the population has an equal chance of being sampled, even if they have already been sampled. This is not usually how surveys are actually carried out, so an adjustment may be necessary to reflect this difference. This adjustment is called the **finite population correction factor** and it is defined as:
 
@@ -358,7 +402,7 @@ n <- 1065
 
 The FPC of our data set is very close to 1 and in general, you can ingore it. But technically, since the data were collected through sampling without replacement, it is more appropriate to use it.
 
-### Create the survey weighted data
+## Create the survey weighted data
 
 We now need to figure out how to incorporate our sampling weights in our modeling steps. To help us do this, there is a function ` svydesign()` in the R package ` survey`. This function combines a data frame and all the design information needed to specify a survey design. Here is the list of options provided in this function:
 
@@ -400,7 +444,7 @@ summary(hypertension_design)
 
 
 
-### Survey-weighted summary statistics
+## Survey-weighted summary statistics
 
 Once we have created our `survey.design` object, we can do further analysis. It is very convenient to use the `svy*` functions which account for survey design features.
 
@@ -430,7 +474,7 @@ It seems that mean bmi and the associated SEs are a little higher for females co
 
 
 
-### Fit a simple survey-weighted logistic regression
+## Fit a simple survey-weighted logistic regression
 
 Logistic regression is widely used to deal with binary response variable. As we mentioned above, our dataset is a survey dataset, and we need to take survey weights into account, so therefore we need to fit the model with the survey weighted data. To do this, we can just use the `svyglm()` function from the `survey` package.
 
@@ -460,7 +504,7 @@ summ(g,exp = TRUE)
 
 What does the model output tells us about the relationship between predictor variables and the chance of getting hypertension? Look at coefficient table. For predictor variable 'smoking', baseline setting is 'Never smoker'. Exponentiated coefficients for 'Former smoker' is 0.56, which means 'Former smoker' is associated with an odd of getting hypertension of 56% of that for 'Never smoker'; Similarly, 'Current smoker' is associated with an odd of getting hypertension of 69% of that for 'Never smoker'. What's more, we can see the p-value for 'smoking' are all less than 0.05, suggesting their significance in this case.
 
-### Fit a full model
+## Fit a full model
 
 After being familiar with how to interpret output of logistic regression model, try to fit a full model including all variables: 
 
@@ -485,7 +529,7 @@ This step is pretty meaningful since it allows us to achieve more accurate resul
 
 
 
-### Model selection
+## Model selection
 
 Not all variables in g1 are significant so we would like to remove some of them to get a reduced model. We find 'race','income', 'diet','drink' and 'smoke' are not that sigificant. Contrary to our common sense, 'diet','drink' and 'smoke' have minimum influence on hypertension when including the other variables in the model. We believe this is because that their influence may be explained by other covariates, such as 'bmi'. Therefore, here we just remove 'race' and 'income'.
 
@@ -521,7 +565,7 @@ Here we plot the exponentiated coefficients, so that the effect is an odds ratio
 
 We can conclude that people with diabetes, high value of cholesterol and fair diet have higher risk of getting hypertension compared to individuals with the baseline levels of these covariates. Also, among them, diabetes and cholesterol have the strongest relationship with hypertension, which is an accurate reflection of what we already know about hypertension. In all, with the help of a regression model like this, researchers could make an initial judgement about whether an individual may have a high risk of hypertension, once these variables have been measured.
 
-### Compare `glm()` and `svyglm()`
+## Compare `glm()` and `svyglm()`
 
 What would happen in this case if we were to use standard logistic regression? 
 
@@ -545,7 +589,7 @@ export_summs(g2, g3,exp = TRUE, model.names = c('glm','svyglm'))
 It is obvious 'diabetes' and 'diet' differ in exponentiated coefficients while that for the others vary slightly. Unlike the simple model, there are too many predict variables in full model and it is cumbersome to compare them one by one. To guarantee a straight perception, we would like to visualize model output rather than show them in a lengthy table. 
 
 
-### Visualization of model output using `plot_summs`
+## Visualization of model output using `plot_summs`
 
 The function `plot_summs()`, which is provided by library `jtools`, plots regression coefficients and their associated uncertainties (confidence intervals) in a visually appealing way. One especially useful thing in our setting is that you can do the same procedure for multiple models simultaneously, and compare the results directly on one plot. We would like to introduce some basic options here:
 
@@ -589,7 +633,7 @@ Obviously, 'cholesterol', 'diabetes', 'smoke' and 'drink' have larger difference
 Different with the result when we compare simple models, the confidence interval computed by `svyglm`(ci_svyglm) is larger than that computed by `glm` (ci_glm). It is strange, isn't it? One possible reason behind this is `survey` computes the standard errors with consideration of the loss of precision introduced by sampling weights. Weights in `glm` simply adjust the weight given to the errors in the least square estimation, so the standard errors aren't correct in our context. 
 
 
-## Summary and Results
+# Summary of results
 
 In this study, we mainly figure out the risk factors that contribute to hypertension and uses logistic regression to deal with binary response variable. Survey weight data is the most important topic in this study. Thus, we apply two approaches to analyze data and compare their results, one is general logistic regression and the other is survey weight logistic regression. 
 
