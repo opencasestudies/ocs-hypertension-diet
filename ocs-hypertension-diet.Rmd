@@ -59,7 +59,6 @@ along with their purpose in this particular case study:
 |`kableExtra`|Help you build common complex tables and manipulate table styles, such as create awesome HTML table|
 |`survey`|Provides useful functions to help you analyze complex survey sample|
 |`haven`|A useful tool to import and export files from SAS, STATA, and SPSS|
-|`jtools`|Provides some functions to understand and sharethe results of (primarily) regression analyses efficiently|
 |`plotrix`|Lots of plots, various labeling, axis and color scaling functions|
 |`huxtable`|An R package to create LaTeX and HTML tables, with a friendly, modern interface|
 |`ggstance`|Provides flipped components: horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
@@ -79,6 +78,7 @@ For this case study, we will use the New York City (NYC)
 [Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/data/), 
 modeled on the 
 [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx). 
+Just click `NYC HANES Analytics Datasets`, it will download automatically.
 NHANES is a population-based, cross-sectional study with data collected 
 from a physical examination and laboratory tests, as well as a face-to-face 
 interview and an audio computer-assisted self-interview (ACASI). It is 
@@ -87,7 +87,7 @@ in the United States. NYC HANES is a local version of NHANES, which implies
 it mainly focus on New York area. 
 
 The data we will use was collected from August 2013 to June 2014 and is called the 
-[NYC HANES 2013-14 Blood Pressure Data](). 
+[NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/wp-content/uploads/sites/6/2019/01/public_v3_122018.sas7bdat). 
 The survey used a probability sample of non-institutionalized adult 
 New York City residents (ages 20 years or older) to provide 
 representative citywide estimates. For further details, please refer to 
@@ -127,8 +127,8 @@ library(tidyverse)
 library(kableExtra)
 library(survey)
 library(haven)
-library(jtools)
 library(plotrix)
+library(broom)
 ```
 
 The NYC HANES data file we are working with is a SAS formatted file so 
@@ -183,7 +183,7 @@ colnames(rename)
 Undoubtedly, compared with DMQ_14_1 and DX_DBTS, 
 race and diabetes are more readable and more easily to understand.
 
-```{r selectCols}
+```{r select-cols}
 hypertension_df <- 
   dat %>% 
     select(id = KEY,
@@ -791,34 +791,31 @@ g <- svyglm(hypertension ~ smoking,
     family = quasibinomial(), design = hypertension_design)
 ```
 
+`tidy()` function in `broom` package can provide a dataframe 
+representation about the models output. Just put the model
+name in it and you will receive a nice dataframe!
+
 ```{r}
-summ(g,exp = TRUE,model.info = FALSE, model.fit = FALSE)
+g_res <- tidy(g)
+g_res
 ```
 
-The `summ()` function is an updated version of `summary()`, where 
-you can set the 
-[arguments](https://www.rdocumentation.org/packages/jtools/versions/2.0.0/topics/set_summ_defaults) 
-to be used in every call to `summ()` 
-in your script. Here are several options:
-
-* `model.info` : Toggles printing of basic information on sample size, name of DV, and number of predictors. If FALSE, these are not printed.
-* `model.fit` : Toggles printing of model fit statistics. If FALSE, these are not printed.
-* `exp` : If set it as TRUE, you will get the exponentiated coefficients rather than the linear estimates. 
-
-This last option is pretty helpful for exponential family 
-models, such as logistic regression.
+All of the prediction variables are list in `term` column and the left part 
+is its corresponding estimation value, standard error etc. After substracting 
+coefficient value and standard error, you can build confidence interval by hand.
 
 What does the model output tells us about the relationship 
 between predictor variables and the chance of getting hypertension? 
 Look at coefficient table. For predictor variable `smoking`,
 baseline setting is 'Never smoker'. Exponentiated coefficients
-for 'Former smoker' is `r summ(g,exp = TRUE)$coeftable[2,1]`, 
+for 'Former smoker' is `r exp(g_res$estimate)[2]`, 
 which means 'Former smoker' is associated with an odds of getting hypertension of 56% 
 of that for 'Never smoker'; Similarly, 'Current smoker' is 
 associated with an odds of getting hypertension of 69% 
 of that for 'Never smoker'. What's more, we can see the 
 p-value for `smoking` are all less than 0.05, suggesting 
 their significance in this case.
+
 
 ### Fit a full model
 
@@ -832,10 +829,9 @@ g1 <- svyglm(hypertension ~
                diabetes + bmi + cholesterol + drink + smoking,
              family = quasibinomial(), 
              design = hypertension_design)
-summ(g1,exp = TRUE, model.info = FALSE, model.fit = FALSE)
+g1_res <- tidy(g1)
+#g1_res[-3]
 ```
-
-Here, we just keep the coefficient table. 
 
 One interesting thing is that both the exponentiated 
 coefficients and the p-value for `smoking` in this model 
@@ -851,12 +847,12 @@ variable and one continuous variable are chosen as examples:
 
 * `smoking`: Holding all other variables the same, 'Former smoker' 
 is associated with an odd of getting hypertension 
-of `r summ(g1,exp = TRUE)$coeftable[25,1]` of that for 'Never smoker'; 
+of `r exp(g1_res$estimate)[25]` of that for 'Never smoker'; 
 'Current smoker' is associated with an odd of getting hypertension 
-of `r summ(g1,exp = TRUE)$coeftable[26,1]` of that for 'Never smoker'. 
+of `r exp(g1_res$estimate)[26]` of that for 'Never smoker'. 
 
 * `bmi`: Holding all other variables the same, a unit increase in bmi 
-changes odds by `r summ(g1,exp = TRUE)$coeftable[20,1]`.
+changes odds by `r exp(g1_res$estimate)[20]`.
 
 This step is pretty meaningful since it allows us to achieve 
 more accurate result. When we try to understand the output,
@@ -933,28 +929,35 @@ have been measured.
 ## Compare to logistic regression 
 
 What would happen in this case if we were to use standard 
-logistic regression using `glm()` instead of `svyglm()`?
+logistic regression using `glm()` instead of `svyglm()`
 
 ```{r}
 g_svy <- glm(hypertension ~ smoking, 
           family = binomial(link = 'logit'), 
           data = hy_df)
-export_summs(g, g_svy, exp = TRUE, 
-             model.names = c('glm', 'svyglm'))
+
+
+g_svy_res <- tidy(g_svy)[-4]
+g_svy_res
 ```
 
-`export_summs()` in [package `huxtable`](https://cran.r-project.org/web/packages/huxtable/index.html) 
-is designed to give 
-you the features available in `summ()`. This is particularly
-useful for putting the results of multiple models into a 
-single table. Exponentiated coefficients, standard error 
-(in the brackets) and other statistic parameters are provided.
 
 From the output, we see that all of the coefficients value 
-rise. Therefore, compared with those who never smoke, the 
+rise. In order to compare them easily, merging these two output
+into one would improve the efficiency. Only coefficient 
+value and standard error are kept for better interpretation.
+
+`merge()` function offer you an efficient way 
+to merge two data frames by common columns or row names.
+
+```{r}
+merge(g_res[1:3], g_svy_res[1:3], by = 'term')
+```
+
+Therefore, compared with those who never smoke, the 
 odds of getting hypertension for former smokers and current
-smokers also change to `r summ(g_svy,exp = TRUE)$coeftable[2,1]` 
-and `r summ(g_svy,exp = TRUE)$coeftable[3,1]` respectively; Second, 
+smokers also change to `r exp(g_svy_res$estimate)[2]` 
+and `r exp(g_svy_res$estimate)[3]` respectively; Second, 
 standard errors calculated by svyglm are less than that 
 calculated by glm, leading to a more accurate confidence 
 interval; In conclusion, svyglm does better job than glm.
@@ -968,8 +971,8 @@ g3 <- glm(hypertension ~
             smoking + diet, 
           family = binomial(link = 'logit'),
           data = hy_df)
-export_summs(g2, g3,exp = TRUE, model.names = c('glm','svyglm'))
 ```
+
 It is obvious `diabetes` and `diet` differ in exponentiated 
 coefficients while that for the others vary slightly. 
 Unlike the simple model, there are too many predict
@@ -981,61 +984,76 @@ them in a long table.
 
 ## Visualization of model outputs
 
-The function `plot_summs()`, which is provided by [package 
-`jtools`](https://cran.r-project.org/web/packages/jtools/index.html), 
-plots regression coefficients and their associated
-uncertainties (confidence intervals) in a visually appealing
-way. One especially useful thing in our setting is that you 
-can do the same procedure for multiple models simultaneously, 
-and compare the results directly on one plot. We would like 
-to introduce some basic options here:
-
-* `...` : regression model(s)
-* `coef` : If you would like to include only certain coefficients, provide them as a vector. If it is a named vector, then the names will be used in place of the variable names. Default: NULL
-* `model.names` : If plotting multiple models simultaneously, you can provide a vector of names here. Default: NULL
-* `ci_level`: The desired width of confidence intervals for the coefficients. Default: 0.95
-* `scale`: If we set it as TRUE, it will make all variable in the same scale, making it pretty easy to make a quick assessment
-
-
-```{r,warning = FALSE}
-plot_summs(g2, g3,scale = TRUE, 
-           model.names = c("svyglm", "glm"))
-```
-
-The label names are default setting, but to make it more readable,
-we can specify the label names via `coefs=`.
+Repeat the same procedure we did for simple model,
+we can construct the confidence interval manually.
+Then save the information in one dataframe.
 
 ```{r}
-plot_summs(g2, g3,
-coefs = c('age' = 'age','bmi' = 'bmi', 
-'cholesterol' = 'cholesterol',
-'diabetic with diagnosis' = 'diabetesDiabetic dx',
-'diabetic without diagnosis' = 'diabetesDiabetic but no dx',
-'gender' = 'gender',
-'former smoker' = 'smokingFormer smoker',
-'current smoker' = 'smokingCurrent smoker',
-'fair diet' = 'dietFair','good diet' = 'dietGood',
-'very good diet' = 'dietVery good',
-'excellent diet' = 'dietExcellent'),
- model.names = c("svyglm", "glm"), 
-scale = TRUE) + xlab('95% confidence interval')
+g2_res <- tidy(g2) %>% 
+  mutate(
+    low = estimate - 0.95 * std.error,
+    high = estimate + 0.95 * std.error,
+    len = high-low
+  )
 
+g3_res <- tidy(g3) %>% 
+  mutate(
+    low = estimate - 0.95 * std.error,
+    high = estimate + 0.95 * std.error,
+    len = high-low
+  )
+
+res <- merge(g2_res, g3_res, by = 'term')
+```
+
+`mutate()` function is used to mutate a dataframe by 
+adding new or replacing existing columns.
+
+The label names are default setting, but to make it 
+more readable, we can specify the label names.
+
+```{r}
+res$term <- c("intercept", 'age' ,'bmi','gender',
+'cholesterol','current smoker',
+'diabetic with diagnosis', 'former smoker', 
+'good diet','fair diet','very good diet', 
+'excellent diet', 'diabetic without diagnosis'
+) 
+
+res <- res[order(res$len.x),]
+```
+
+Now, let's plot the confidence interval manually.
+
+```{r}
+ggplot(res[-13,]) +
+     geom_vline(xintercept = 0) +
+     geom_errorbarh(aes(estimate.x, term, xmin = low.x, 
+     xmax = high.x, height = 0.5), color = "red")+
+     geom_errorbarh(aes(estimate.y, term, xmin = low.y, 
+     xmax = high.y, height = 0.5))+
+      xlab("value") +
+    ylab("variables") +
+    ggtitle("95% confidence interval")
 ```
 
 ```{r, message=FALSE}
-#ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
+ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
+
+The red one is the confidence interval constructed by `svyglm()`
+(`ci_svyglm`) while the black one is constructed by `glm()`(`ci_glm`).
+
 Obviously, `cholesterol`, `diabetes`, `smoking` and `drink`
 have larger differences in confidence intervals comparing 
 the standard glm to the survey-weighted glm results, while 
 `age`, `bmi` and `gender` have only small differences. 
 
 Different with the result when we compare simple models,
-the confidence interval computed by `svyglm` (ci_svyglm) 
-is larger than that computed by `glm` (ci_glm). It is strange, 
+`ci_svyglm` is larger than `ci_glm`. It is strange, 
 isn't it? One possible reason behind this is `survey` computes 
 the standard errors with consideration of the loss of precision 
-introduced by sampling weights. Weights in `glm` simply adjust 
+introduced by sampling weights. Weights in `glm()` simply adjust 
 the weight given to the errors in the least square estimation,
 so the standard errors aren't correct in our context. 
 
@@ -1050,10 +1068,10 @@ to compare their results: one is general logistic regression and
 the other is survey weight logistic regression. 
 
 To select the most appropriate model, in the first step, 
-survey weight logistic regression (`svyglm`) is applied 
+survey weight logistic regression (`svyglm()`) is applied 
 considering our survey weight data set. Next, we delete 
 several insignificant variables based on their p-value. Then,
-we compare it with `glm`. In each step we begin with a simple
+we compare it with `glm()`. In each step we begin with a simple
 model and then extend to the ideal one, a full model. This is 
 well-grounded since we are able to analyze how the output changes
 by setting all other variables stable. There is no doubt 
@@ -1067,10 +1085,10 @@ the probability of getting hypertension. And confidence intervals
 for `cholesterol`, `diabetes`,`smoking` and `drink` have obvious 
 difference. It is wired that in simple model, `ci_svyglm` is shorter
 than `ci_glm` while in full model the results change to the opposite. 
-One potential explanation is the incompleteness of `glm`. But 
-`svyglm` are more likely to give an accurate results since it 
+One potential explanation is the incompleteness of `glm()`. But 
+`svyglm()` are more likely to give an accurate results since it 
 consider sampling weight. Therefore we still believe, for survey 
-weight data, `svyglm` should be the first choice than others.
+weight data, `svyglm()` should be the first choice than others.
 
 In the future, we can make more efforts on applied survey methods
 and decide whether there exist better approaches, such as stratified sample. 
