@@ -38,7 +38,7 @@ survey-weighted logistic regression, focusing on the comparison
 between them. The plot below summarizes the results from this analysis 
 illustrating that the standard error of coefficients calculated by the 
 two models ([logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) 
-and [survey-weighted logistic regression]())
+and [survey-weighted logistic regression](http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=9591E971AF4061BBF8F98083422FF313?doi=10.1.1.151.6423&rep=rep1&type=pdf))
 are different. We will discuss later which model is a better choice 
 for this dataset. 
 
@@ -60,8 +60,8 @@ along with their purpose in this particular case study:
 |`survey`|Provides useful functions to help you analyze complex survey sample|
 |`haven`|A useful tool to import and export files from SAS, STATA, and SPSS|
 |`plotrix`|Lots of plots, various labeling, axis and color scaling functions|
-|`huxtable`|An R package to create LaTeX and HTML tables, with a friendly, modern interface|
 |`ggstance`|Provides flipped components: horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
+|`broom`|Takes the messy output of built-in functions in R, such as lm, nls, or t.test, and turns them into tidy data frames|
 
 
 In order to run this code please ensure you have these packages installed. 
@@ -127,8 +127,8 @@ library(tidyverse)
 library(kableExtra)
 library(survey)
 library(haven)
-library(plotrix)
 library(broom)
+library(plotrix)
 ```
 
 The NYC HANES data file we are working with is a SAS formatted file so 
