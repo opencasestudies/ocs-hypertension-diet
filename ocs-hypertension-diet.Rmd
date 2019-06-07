@@ -1023,11 +1023,7 @@ res$term <- c("intercept", 'age' ,'bmi','gender',
 
 #reorder the dataframe based on length of confidence interval
 res <- res[order(res$len.x),]
-
-res[,c("term","len.x","len.y")]
 ```
-`len.x` is the confidence interval constructed by `svyglm()`
-(`ci_svyglm`) while `len.y` is constructed by `glm()`(`ci_glm`)
 
 Now, let's plot the confidence interval manually.
 
@@ -1048,7 +1044,8 @@ ggplot(res[-13,]) +
 ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
 
-The red one is `ci_svyglm` while the black one is `ci_glm`.
+The red one is the confidence interval constructed by `svyglm()`
+(`ci_svyglm`) while the black one is constructed by `glm()`(`ci_glm`)
 
 Obviously, `cholesterol`, `diabetes`, `smoking` and `diet`
 have larger differences in confidence intervals comparing 
