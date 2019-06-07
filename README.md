@@ -3,7 +3,7 @@
 
 This case study is part of the [OpenCaseStudies]() project. This work is licensed under the Creative Commons Attribution-NonCommercial 3.0 ([CC BY-NC 3.0](https://creativecommons.org/licenses/by-nc/3.0/us/)) United States License.
 
-The libraries used in this study are ` library(knitr)`, ` library(ggplot2)`, ` library(ggpubr)`, ` library(ggrepel)`,` library(tableone)`, ` library(kableExtra)`, ` library(survey)`, ` library(broom)`, `library(Rmisc)`, `library(tidyverse)`,`library(haven)`,`library(jtools)`,`library(plotrix)`.
+The libraries used in this study are ` library(knitr)`, ` library(ggplot2)`, ` library(ggpubr)`, ` library(ggrepel)`,` library(tableone)`, ` library(kableExtra)`, ` library(survey)`, ` library(broom)`, `library(Rmisc)`, `library(tidyverse)`,`library(haven)`,`library(plotrix)`.
 
 
 ## Risk factors for hypertension using NYC NHANES data
