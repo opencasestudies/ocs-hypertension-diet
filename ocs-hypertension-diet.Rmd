@@ -873,7 +873,7 @@ sigificant. Contrary to our common sense, `diet`,`drink` and
 `smoking` have minimum influence on hypertension when including
 the other variables in the model. We believe this is because 
 that their influence may be explained by other covariates, 
-such as `bmi`. Therefore, here we just remove `race` and `income`.
+such as `bmi`. Therefore, here we just remove `race`, `drink` and `income`.
 
 ```{r,fig.width=7, fig.height=5}
 g2 <- svyglm(hypertension ~ 
@@ -971,6 +971,7 @@ g3 <- glm(hypertension ~
             smoking + diet, 
           family = binomial(link = 'logit'),
           data = hy_df)
+#tidy(g3)
 ```
 
 It is obvious `diabetes` and `diet` differ in exponentiated 
@@ -1020,31 +1021,36 @@ res$term <- c("intercept", 'age' ,'bmi','gender',
 'excellent diet', 'diabetic without diagnosis'
 ) 
 
+#reorder the dataframe based on length of confidence interval
 res <- res[order(res$len.x),]
+
+res[,c("term","len.x","len.y")]
 ```
+`len.x` is the confidence interval constructed by `svyglm()`
+(`ci_svyglm`) while `len.y` is constructed by `glm()`(`ci_glm`)
 
 Now, let's plot the confidence interval manually.
 
-```{r}
+```{r, fig.width=8, fig.height=6}
 ggplot(res[-13,]) +
-     geom_vline(xintercept = 0) +
+     geom_vline(xintercept = 0, linetype = "dashed") +
      geom_errorbarh(aes(estimate.x, term, xmin = low.x, 
-     xmax = high.x, height = 0.5), color = "red")+
+     xmax = high.x, height = 0.5), size = 0.8, color = "red")+
      geom_errorbarh(aes(estimate.y, term, xmin = low.y, 
-     xmax = high.y, height = 0.5))+
-      xlab("value") +
-    ylab("variables") +
-    ggtitle("95% confidence interval")
+     xmax = high.y, height = 0.5), size = 0.8)+
+     theme(axis.title.x = element_blank(),
+     axis.title.y = element_blank()) +
+    ggtitle(expression(atop(bold("95% condfidence interval"), 
+                            atop(italic("red:svyglm  black:glm")))))
 ```
 
 ```{r, message=FALSE}
 ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 ```
 
-The red one is the confidence interval constructed by `svyglm()`
-(`ci_svyglm`) while the black one is constructed by `glm()`(`ci_glm`).
+The red one is `ci_svyglm` while the black one is `ci_glm`.
 
-Obviously, `cholesterol`, `diabetes`, `smoking` and `drink`
+Obviously, `cholesterol`, `diabetes`, `smoking` and `diet`
 have larger differences in confidence intervals comparing 
 the standard glm to the survey-weighted glm results, while 
 `age`, `bmi` and `gender` have only small differences. 
@@ -1082,7 +1088,7 @@ the odds of getting hypertension with one categorical variable
 example and one numerical variable example. Besides, we find
 `diabetes` and `cholesterol` have strong positive effects on 
 the probability of getting hypertension. And confidence intervals 
-for `cholesterol`, `diabetes`,`smoking` and `drink` have obvious 
+for `cholesterol`, `diabetes`,`smoking` and `diet` have obvious 
 difference. It is wired that in simple model, `ci_svyglm` is shorter
 than `ci_glm` while in full model the results change to the opposite. 
 One potential explanation is the incompleteness of `glm()`. But 
