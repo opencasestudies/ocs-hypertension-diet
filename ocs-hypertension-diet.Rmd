@@ -1005,10 +1005,10 @@ g3_res <- tidy(g3) %>%
     method = 'glm'
   )
 
-#res <- merge(g2_res, g3_res, by = 'term')
-res2 <- rbind(g2_res, g3_res)
+
+res <- rbind(g2_res, g3_res)
 #reorder the dataframe based on length of confidence interval
-res2 <- res2[order(res2$len),][1:24,]
+res <- res[order(res$len),][1:24,]
 ```
 
 `mutate()` function is used to mutate a dataframe by 
@@ -1018,7 +1018,7 @@ The label names are default setting, but to make it
 more readable, we can specify the label names.
 
 ```{r}
-res2$term <- c('age' ,'age' ,'bmi','bmi',
+res$term <- c('age' ,'age' ,'bmi','bmi',
 'gender','cholesterol','gender',
 'cholesterol','current smoker',
 'diabetic with diagnosis','current smoker',
@@ -1033,7 +1033,7 @@ res2$term <- c('age' ,'age' ,'bmi','bmi',
 Now, let's plot the confidence interval manually.
 
 ```{r, fig.width=8, fig.height=6}
-ggplot(res2, aes(x = estimate, y = term),
+ggplot(res, aes(x = estimate, y = term),
      group_by(res2$method)) +
      geom_vline(xintercept = 0, linetype = "dashed") +
      geom_errorbarh(aes(estimate, term, xmin = low, 
