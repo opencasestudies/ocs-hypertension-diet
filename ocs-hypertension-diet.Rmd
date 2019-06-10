@@ -1036,10 +1036,10 @@ Now, let's plot the confidence interval manually.
 ggplot(res2, aes(x = estimate, y = term),
      group_by(res2$method)) +
      geom_vline(xintercept = 0, linetype = "dashed") +
-     geom_point(aes(color = factor(method),
-                    shape = factor(method)),size = 3)+
      geom_errorbarh(aes(estimate, term, xmin = low, 
      xmax = high, color = factor(method),width = 0.3), size = 0.8)+
+     geom_point(aes(color = factor(method),
+                    shape = factor(method)),size = 3)+
      theme(axis.title.x = element_blank(),
      axis.title.y = element_blank()) +
     ggtitle(expression(atop(bold("95% condfidence interval"))))

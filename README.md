@@ -29,7 +29,7 @@ The data is downloaded from NYC NHANES (a local version of NHANES), The NYC Heal
 To select the most appropriate model, first, survey weight logistic regression (`svyglm`) is applied considering our survey weight data set. Next, we delete several insignificant variables based on their p-value. Then, we compare it with `glm`. In each step we begin with a simple model and then extend to the ideal one, a full model. This is well-grounded since we are able to analyze how the output changes by setting all other variables stable. Finally, we show the result table and visualize the comparison. 
 
 
-## Result presentation
+## Alternative method
 
 One package called `jtools` provides some functions to understand and sharethe results of (primarily) regression analyses efficiently. Besides the way we use in this case study, other functions in this package would be helpful to you if you want to have a quick way to see and compare the result. We would like to introduce some them and try to explore more if you are interested in them.
 
