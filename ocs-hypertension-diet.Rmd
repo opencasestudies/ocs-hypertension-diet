@@ -44,7 +44,6 @@ for this dataset.
 
 <center>
 ![](data/FinalPlot.png)
-
 </center>
 
 The libraries used in this study are listed in the following table, 
@@ -994,17 +993,22 @@ g2_res <- tidy(g2) %>%
   mutate(
     low = estimate - 0.95 * std.error,
     high = estimate + 0.95 * std.error,
-    len = high-low
+    len = high-low,
+    method = 'svyglm'
   )
 
 g3_res <- tidy(g3) %>% 
   mutate(
     low = estimate - 0.95 * std.error,
     high = estimate + 0.95 * std.error,
-    len = high-low
+    len = high-low,
+    method = 'glm'
   )
 
-res <- merge(g2_res, g3_res, by = 'term')
+#res <- merge(g2_res, g3_res, by = 'term')
+res2 <- rbind(g2_res, g3_res)
+#reorder the dataframe based on length of confidence interval
+res2 <- res2[order(res2$len),][1:24,]
 ```
 
 `mutate()` function is used to mutate a dataframe by 
@@ -1014,30 +1018,31 @@ The label names are default setting, but to make it
 more readable, we can specify the label names.
 
 ```{r}
-res$term <- c("intercept", 'age' ,'bmi','gender',
+res2$term <- c('age' ,'age' ,'bmi','bmi',
+'gender','cholesterol','gender',
 'cholesterol','current smoker',
-'diabetic with diagnosis', 'former smoker', 
-'good diet','fair diet','very good diet', 
-'excellent diet', 'diabetic without diagnosis'
-) 
-
-#reorder the dataframe based on length of confidence interval
-res <- res[order(res$len.x),]
+'diabetic with diagnosis','current smoker',
+'diabetic with diagnosis', 'former smoker',
+'former smoker', 'good diet','fair diet',
+'very good diet','good diet','fair diet', 
+'very good diet','excellent diet',
+'diabetic without diagnosis','excellent diet',
+'diabetic without diagnosis') 
 ```
 
 Now, let's plot the confidence interval manually.
 
 ```{r, fig.width=8, fig.height=6}
-ggplot(res[-13,]) +
+ggplot(res2, aes(x = estimate, y = term),
+     group_by(res2$method)) +
      geom_vline(xintercept = 0, linetype = "dashed") +
-     geom_errorbarh(aes(estimate.x, term, xmin = low.x, 
-     xmax = high.x, height = 0.5), size = 0.8, color = "red")+
-     geom_errorbarh(aes(estimate.y, term, xmin = low.y, 
-     xmax = high.y, height = 0.5), size = 0.8)+
+     geom_point(aes(color = factor(method),
+                    shape = factor(method)),size = 3)+
+     geom_errorbarh(aes(estimate, term, xmin = low, 
+     xmax = high, color = factor(method),width = 0.3), size = 0.8)+
      theme(axis.title.x = element_blank(),
      axis.title.y = element_blank()) +
-    ggtitle(expression(atop(bold("95% condfidence interval"), 
-                            atop(italic("red:svyglm  black:glm")))))
+    ggtitle(expression(atop(bold("95% condfidence interval"))))
 ```
 
 ```{r, message=FALSE}
