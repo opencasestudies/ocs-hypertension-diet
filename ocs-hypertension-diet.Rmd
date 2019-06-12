@@ -143,23 +143,22 @@ different variables. For our analysis, we will only consider a subset of these v
 
 ## Select the variables (or columns)
 
-This is a survey dataset based on interviews or questionnaires
+This is a survey dataset based on interviews and questionnaires
 with `r ncol(dat)` variables. Some variables are not relevant 
 to our current research question, such as 
 _'LAQ1: What language is being used to conduct this interview'_. 
 
-Previous people have shown hypertension is associated  with 
+Previous work has shown hypertension is associated  with 
 drinking, smoking, cholesterol values, and triglyceride levels. 
-Excluding these variables, we will choose other covariates, which 
-at first might not seem highly related to hypertension, such as 
-income, and try to see whether they have an association with 
-hypertension after all. Here, we selected 13 covariates for our 
+Instead of looking at these same risk factors, we will consider whether other variables -- which 
+at first might not seem highly related to hypertension -- have an association with 
+hypertension after all. We selected 13 covariates for our 
 analysis.  
 
-We use the `select()` function from the `dplyr` package
+We will use the `select()` function from the `dplyr` package
 to choose and rename the columns that we want. 
 
-To show how the renaming of the column names works, I will give a simple example.
+Here is a simple example to show how the renaming of the column names works:
 
 ```{r}
 rename <- 
@@ -169,8 +168,11 @@ rename <-
            diabetes = DX_DBTS)
 colnames(rename)
 ```
-Undoubtedly, compared with DMQ_14_1 and DX_DBTS, 
-race and diabetes are more readable and more easily to understand.
+
+In this example, we select the three variables of `KEY`, `DMQ_14_1`, and `DX_DBTS` and rename them to the more descriptive `id`, `race`, and `diabetes`.  We save this smaller and renamed data frame in the `rename` object rather than write over our originial data. Undoubtedly, compared with `DMQ_14_1` and `DX_DBTS`, 
+`race` and `diabetes` are more readable and more easily to understand.
+
+Now we select and rename the 13 variables we will consider in our analysis:
 
 ```{r select-cols}
 hypertension_df <- 
@@ -190,20 +192,18 @@ hypertension_df <-
            surveyweight = CAPI_WT)
 ```
 
-For a description of the variables, we refer the reader to the
+We will give some description of each variable below, but for full details we refer the reader to the
 [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf).
 
 
 ### Non-categorical variables 
 
-There are three non-categorial variables that we will use and 
-the last variable `surveyweight` will be used in the modeling, 
-which we will discuss later on: 
+There are four non-categorial variables that we will use in our analysis:
 
-  * `id`: sample case ID
-  * `age`: sample age, range 22-115
-  * `bmi`: BMI = $kg/m^2$ where $kg$ is a person's weight in kilograms and $m^2$ is their height in meters squared
-  * `surveyweight`: numeric values associated with each observation to let us know how much weight the observation should receive in our analysis.
+  * `id`: Sample case ID, unique to each individual in the sample
+  * `age`: Sample age, range 22-115 years
+  * `bmi`: BMI = $kg/m^2$ where $kg$ is a person's weight in kilograms and $m$ is their height in meters
+  * `surveyweight`: Numeric values associated with each observation to let us know how much weight the observation should receive in our analysis (more details later)
   
 ### Categorical variables 
 
@@ -220,7 +220,7 @@ We will consider ten categorial variables:
     + 1 = Male
     + 2 = Female
   * `born`:
-    + 1 = Us born
+    + 1 = US born
     + 2 = Other country
   * `diet`: 
     + 1 = Excellent
@@ -228,7 +228,7 @@ We will consider ten categorial variables:
     + 3 = Good
     + 4 = Fair
     + 5 = Poor
-  * `diabetes`: previously diagnosed with diabetes
+  * `diabetes`: Previously diagnosed with diabetes
     + 1 = Diabetic with diagnosis
     + 2 = Diabetic without diagnosis 
     + 3 = Not diabetic
@@ -250,18 +250,17 @@ We will consider ten categorial variables:
     + 4 = $60,000 - $79,999
     + 5 = $80,000 - $99,999
     + 6 = $100,000 or more
-  * `hypertension`: previously diagnosed as having hypertension
+  * `hypertension`: Previously diagnosed as having hypertension
     + 1 = Yes
     + 2 = No
     
 ## Initial data inspection
 
 The first step of any data analysis should be to explore 
-the data through data visualizations and data summaries, such as
+the data through data visualizations and data summaries like
 tables and summary statistics. There are several ways that you 
-can have a glance at your data. Plotting the data or using the 
-`summary()` or `head()` functions in base R are excellent 
-ways to help you have a quick judgement on the data set.
+can have an initial glance at your data. The `summary()` or `head()` functions in are excellent 
+ways to help you have a quick look at the data set.
 
 The `summary()` function tabulates categorical variables and 
 provides summary statistics for continuous variables, while also 
@@ -272,10 +271,10 @@ in deciding what variables to consider in downstream analysis.
 summary(hypertension_df)
 ```
 
-We see that certain variables have a large number of `NA`s; in 
+We see that certain variables have a large number of `NA` values; in 
 particular `drink` has `r sum(is.na(hypertension_df$drink))` 
-`NA`s and `diabetes` has `r sum(is.na(hypertension_df$diabetes))` 
-`NA`s. Directly removing rows containing missing data is not desirable 
+`NA` values and `diabetes` has `r sum(is.na(hypertension_df$diabetes))` 
+`NA` values. Directly removing rows containing missing data is not desirable 
 considering the large number of such rows, so we decided to look more 
 closely at the missing values. Using the 
 [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, 
@@ -295,20 +294,26 @@ Among these `r sum(is.na(hypertension_df$drink))` missing values,
 there are just 
 `r sum(is.na(hypertension_df$drink)) - sum(dat$ALQ_1 == 0, na.rm = TRUE)`
 actual missing values. Therefore, merging these two variables 
-as one is a better choice to avoid removing too many observations.
-
+as one is a better way to capture drinking that includes those who never drink. We label those subjects who answered `0` to variable `AlQ_1` (those who never drink) as 4.
 ```{r}
 hypertension_df$drink[which(dat$ALQ_1==0)] <- 4
+```
+
+Now our variable `drink` has values as follows:
+
+  * `drink`: In the past 12 months, how often did sample drink any type of alcoholic beverage
+    + 1 = Weekly
+    + 2 = Monthly
+    + 3 = Yearly
+    + 4 = Never
+
+And we can see only 6 missing values for `drink` are left now.
+```{r}
 summary(hypertension_df$drink)
 ```
-We label those who never drink as 4 so now they are another new catergory in the dataset.
 
-With the help of function `which()`, only 6 missing 
-values for `drink` are left now.
-
-In next step, we aim to remove rows containing missing 
-data with the function `drop_na()` in library 
-`tidyr` and store in a new data frame:
+In the next step, we aim to remove rows containing missing 
+data with the function `drop_na()` in library `tidyr` and store in a new data frame:
 
 ```{r}
 hy_df <- 
@@ -316,18 +321,17 @@ hy_df <-
   drop_na()
 ```
 
-This will drop all rows which still contain missing values. 
-Finally, we see that we retain `r nrow(hy_df)` observations with
-`r ncol(hy_df)` different variables.
+This will drop all rows which still contain missing values. By checking the dimensions of our new data frame, `hy_df`, we see that we retain `r nrow(hy_df)` observations with `r ncol(hy_df)` different variables.
+```{r}
+dim(hy_df)
+```
 
 ## Adjust data types
 
 From the data summaries above, we can see that there are several 
 categorical variables like `race`, `gender`, `born`, `diet`, `income`, 
 `diabetes`, `bmi`, `drink`, and `smoke`, which are currently being 
-treated as numerical values, but should be treated as factors. 
-Failing to change the type of data from numerical to categorial could
-result in problems in the downstream analysis. 
+treated as numerical values, but should be treated as factors. Treating the data as numerical instead of categorial could result in problems in the downstream analysis.
 
 For example, the linear model `lm()` and generalized linear model `glm()` 
 functions will treat numerically-coded categorical variables as 
@@ -345,7 +349,7 @@ included in the `levels` argument will get set to `NA` values.
 We also want to think about creating a natural ordering to the 
 factor levels here: the first level will generally be our 
 reference level in a linear model, so it makes sense to try
-to give them an order that reflects this.
+to give them an order that reflects our choice of reference group.
 
 ```{r recodeFactors}
 hy_df$race <- factor(hy_df$race, 
@@ -389,6 +393,7 @@ Now let's look at a summary of our `hy_df` data frame.
 summary(hy_df)
 ```
 
+We see that now the `summary()` function gives us counts for each category of these variables rather than the meaningless numerical summaries, like means, it was giving before.
 
 # Exploratory data analysis
 
