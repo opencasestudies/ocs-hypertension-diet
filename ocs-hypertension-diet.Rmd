@@ -28,14 +28,10 @@ high blood pressure, costing the US around $48.6 billion
 each year. This total includes the cost of healthcare services, 
 medications to treat high blood pressure, and missed days of work.
 
-The link between hypertension and some physical measurements has 
-been well-established in previous studies. In this case study, 
-moving beyond the traditional aspects, we will explore other risk 
-factors and their potential influence on hypertension.
+The link between hypertension and physical measurements has 
+been well-established in previous studies. In this case study, we will explore the relationship between hypertension and a variety of risk factors.
 
-This case study also introduces logistic regression and 
-survey-weighted logistic regression, focusing on the comparison
-between them. The plot below summarizes the results from this analysis 
+This case study introduces survey methods for logistic regression, utilizing survey-weighted logistic regression and comparing the results to standard logistic regression. The plot below summarizes the results from this analysis 
 illustrating that the standard error of coefficients calculated by the 
 two models ([logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) 
 and [survey-weighted logistic regression](http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=9591E971AF4061BBF8F98083422FF313?doi=10.1.1.151.6423&rep=rep1&type=pdf))
@@ -55,21 +51,22 @@ along with their purpose in this particular case study:
 |`ggpubr`|Provides some easy-to-use functions for creating and customizing 'ggplot2'- based publication ready plots|
 |`ggrepel`|Provides text and label geoms for 'ggplot2' that help to avoid overlapping text labels|
 |`tidyverse`|A coherent system of packages for data manipulation, exploration and visualization |
-|`kableExtra`|Help you build common complex tables and manipulate table styles, such as create awesome HTML table|
-|`survey`|Provides useful functions to help you analyze complex survey sample|
-|`haven`|A useful tool to import and export files from SAS, STATA, and SPSS|
-|`plotrix`|Lots of plots, various labeling, axis and color scaling functions|
-|`ggstance`|Provides flipped components: horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
-|`broom`|Takes the messy output of built-in functions in R, such as lm, nls, or t.test, and turns them into tidy data frames|
+|`kableExtra`|Helps with building common complex tables and manipulating table styles; creates awesome HTML tables|
+|`survey`|Provides useful functions for analyzing complex survey samples|
+|`haven`|A useful tool to import and export data from SAS, STATA, and SPSS formats|
+|`plotrix`|A variety of plots, various labeling, axis and color scaling functions|
+|`ggstance`|Provides flipped components for 'ggplot2': horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
+|`broom`|Takes the messy output of built-in functions in R, such as lm, nls, or t.test, and turns it into tidy data frames|
 
 
-In order to run this code please ensure you have these packages installed. 
+In order to run the code for this case study, please ensure you have these packages installed. 
 
 The learning objectives for this case study include:
+
   * data visualization
   * logistic regression
-  * survey weight analysis
-  * choose weight for unbalanced data
+  * survey-weighted analysis
+  * selection of survey weights for unbalanced data
 
 # What is the data?
 
