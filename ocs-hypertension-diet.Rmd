@@ -349,7 +349,7 @@ included in the `levels` argument will get set to `NA` values.
 We also want to think about creating a natural ordering to the 
 factor levels here: the first level will generally be our 
 reference level in a linear model, so it makes sense to try
-to give them an order that reflects our choice of reference group.
+to give them an order that reflects our choice of reference group.  For example, we will want to compare individuals drink weekly, monthly, or yearly to those who never drink, so we order the `drink` variable as `Never`, `Weekly`, `Monthly`, `Yearly` even though the numerical values in that order are 4, 1, 2, 3.
 
 ```{r recodeFactors}
 hy_df$race <- factor(hy_df$race, 
@@ -397,71 +397,70 @@ We see that now the `summary()` function gives us counts for each category of th
 
 # Exploratory data analysis
 
-Some simple data visualizations can help take a first look at 
-the data and provide much information about how the different 
+Simple data visualizations give us a first look at 
+the data and provide information about how the different 
 variables are related to one another. Plots can identify the trends 
-or patterns in the variables you are interested in, and inspire you
-in terms of the the next steps in your data analysis. For our 
+or patterns in the variables of interest and inform the next steps in the data analysis. For our 
 data visualizations, we will mainly use the package `ggplot2`, 
-a powerful tool for data visualization. A link for its cheat sheet is here: https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf.
+a powerful tool for data visualization. A link for its cheat sheet is [here]( https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf).
 
-Plotting numerical data is something you may be familiar with. 
-This time we are going to incorporate some of the categorical variables 
-into the plots. Although going from numerical data to categorical 
-data bins does give you less precision, it can make drawing conclusions 
-from plots much easier. 
-
-First, we try to plot one categorical variable `hypertension`, with 
-one numerical variable `age`.
+The type of plot we will make will depend on the type of variable(s) we are plotting.  First, we try to plot one categorical variable (`hypertension`) with 
+one numerical variable (`age`). Since `hypertension` is the categorical variable, we can compare the age distributions between those who are hypertense and those who are not using side-by-side boxplots.  Here the variable on the `x` axis is `hypertension` and the variable on the `y` axis is `age`, which corresponds to the `aes(x=hypertension, y=age)` definition in the `ggplot` aesthetic definition.
 
 ```{r, fig.width=4, fig.height=4}
 p1 <- hy_df %>% 
-        ggplot(aes(x = hypertension, y=age)) +
+        ggplot(aes(x = hypertension, y = age)) +
           geom_boxplot() + 
           ggtitle('Distribution of age by hypertension status')
 p1
 ```
 
-What about `hypertension` with `gender`? Let's try three 
-different ways to plot the categorical variable `gender`.
+Comparing the medians of these two boxplots, we see that people who are hypertense tend to be older than people who are not, which indicates that age is related to hypertension.
+
+What about a plot for investigating the relationship between `hypertension` and `gender`? Let's try three different ways to plot the categorical variable `gender` with `hypertension`.  We'll use the function `ggarrange()` in [package `ggpubr`](https://www.rdocumentation.org/packages/ggpubr/versions/0.2) to arrange multiple ggplots on the same page. 
 
 ```{r, fig.width=11, fig.height=5}
 p2 <- hy_df %>% 
         ggplot(aes(x = hypertension, y=gender)) + 
           geom_boxplot() + ggtitle('distribution of gender')
 p3 <- hy_df %>% 
+        ggplot(aes(x = hypertension, fill = gender)) + 
+          geom_bar() + ggtitle('distribution of gender')
+p4 <- hy_df %>% 
+        ggplot(aes(x = hypertension, fill = gender)) + 
+          geom_bar(position = "fill") + 
+          ggtitle('distribution of gender') + 
+          ylab('proportion')
+ggarrange(p2, p3, p4, ncol=3, nrow=1)
+```
+
+The left plot uses `geom_boxplot()` as we did with `age`, but 
+it fails to show the relationship of interest! Boxplots are not what we want 
+for a categorical variable like `gender`, so we need another plotting method. 
+
+The middle and right plots use barplots to look at the 
+relationship between `hypertension` and `gender`. This time it works! The middle plot shows the count of males and females for those with and without hypertension.  The right plot more clearly shows the proportion of males and females within each hypertension group by using the `position='fill'` option in the `geom_bar()` function. The y-axis in the right plot is proportion rather than count. 
+From this visualization, we see that a higher proportion the hypertense individuals are male compared to the non-hypertense individuals.
+
+But are these plots really the right ones for our question of interest?  Rather than comparing the distribution of gender between the hypertension groups, we really want to see whether there is a difference in hypertension rates between gender groups. To do this, we switch the x-axis and y-axis, to show `hypertension` as a 
+function of `gender`, rather than the other way around. 
+
+```{r, fig.width=11, fig.height=5}
+p3b <- hy_df %>% 
         ggplot(aes(x = gender, fill = hypertension)) + 
           geom_bar() + ggtitle('distribution of hypertension')
-p4 <- hy_df %>% 
+p4b <- hy_df %>% 
         ggplot(aes(x = gender, fill = hypertension)) + 
           geom_bar(position = "fill") + 
           ggtitle('distribution of hypertension') + 
           ylab('proportion')
-ggarrange(p2, p3, p4, ncol=3, nrow=1)
+ggarrange(p3b, p4b, ncol=2, nrow=1)
 ```
-`ggarrange()` in [package `ggpubr`](https://www.rdocumentation.org/packages/ggpubr/versions/0.2) 
-is to arrange multiple ggplots on the same page. 
 
-The left plot uses `geom_boxplot()` as we did with `age`, but 
-it fails to show the relationship! Boxplots are not what we want 
-for a categorical variable like `gender`, so we need another way, 
-instead of just applying traditional plotting methods. 
+Now we can compare the distribution of hypertension between males and females.  
+From this visualization we see that a higher proportion of males than females in our dataset have hypertension. 
 
-The next two plots show alternative ways of looking at the 
-relationship between `hypertension` and `gender`. This time it works! 
-First, we switch the x-axis and y-axis, to show `hypertension` as a 
-function of `gender`, rather than the other way around, as 
-`hypertension` is our outcome variable of interest. The middle plot 
-shows the count of individuals with and without hypertension for 
-males and females and you can compare the two distributions. 
-But to more clearly see the proportion of people with hypertension
-among males and females for each level, we use `position='fill'`. 
-The y-axis in the right plot is proportion rather than count. 
-From this visualization, it is clear that a higher proportion 
-of males than females in our dataset have hypertension. 
-
-Next, we apply the same visualization methods on other 
-variables and find if there exists a relationship between them
+Next, we apply the same visualization methods on other variables to explore relationships between them.
 
 ```{r, fig.width=9, fig.height=5}
 p5 <- hy_df %>% 
@@ -475,17 +474,14 @@ p6 <- hy_df %>%
 ggarrange(p5, p6, ncol=2, nrow=1)
 ```
 
-To my mind, these plots are pretty illuminating. From the left 
-plot, we see that there are more monthly and yearly drinkers 
-in current smokers, and more weekly drinkers in former smokers.
-This may imply a potential relationship between smoking and drink. 
-Additionally, the right plot shows that the proportion of 
-diabetes patients are perfectly positive with high cholesterol 
-value. Therefore potential relationship also exists in these 
-two variables. 
+From the left plot, we see that there are higher proportions of monthly and yearly drinkers 
+in current smokers, and a higher proportion of weekly drinkers in former smokers.
+This may imply a potential relationship between smoking and drinking. 
+Additionally, the right plot shows that there is a much higher proportion of
+diabetes, both diagnosed and undiagnosed, in the high cholesterol group compared to the low cholesterol group.  Therefore a relationship also appears to exist between these two variables. 
 
-What if we want to see relationship for more variables? 
-This time we are going to incorporate three variables into the plots. 
+What if we want to explore a relationship between more than two variables? 
+Now we are going to incorporate three variables into the plots. 
 
 ```{r}
 p7 <- hy_df %>% 
