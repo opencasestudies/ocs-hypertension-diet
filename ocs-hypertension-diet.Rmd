@@ -474,14 +474,14 @@ p6 <- hy_df %>%
 ggarrange(p5, p6, ncol=2, nrow=1)
 ```
 
-From the left plot, we see that there are higher proportions of monthly and yearly drinkers 
-in current smokers, and a higher proportion of weekly drinkers in former smokers.
-This may imply a potential relationship between smoking and drinking. 
+From the left plot, we see that there are higher proportions of monthly and yearly drinkers in current smokers, and a higher proportion of weekly drinkers in former smokers.  This may imply a potential relationship between smoking and drinking. 
 Additionally, the right plot shows that there is a much higher proportion of
 diabetes, both diagnosed and undiagnosed, in the high cholesterol group compared to the low cholesterol group.  Therefore a relationship also appears to exist between these two variables. 
 
 What if we want to explore a relationship between more than two variables? 
-Now we are going to incorporate three variables into the plots. 
+Suppose we wanted to look at the relationship between BMI, cholesterol level, and smoking status all at the same time.  Since `cholesterol` and `smoking` are both categorical variables, we can divide by the levels of one of these variables, say `smoking`, and then look at plots showing the relationship between the other two variables within each level of `smoking`.
+
+We can do this in `ggplot` by taking the plot statement for two variables (`cholesterol` and `bmi`) and adding a `facet_wrap()` function for the third variable we're dividing by.
 
 ```{r}
 p7 <- hy_df %>% 
@@ -497,14 +497,10 @@ is a boxplot which characterises the distribution of `bmi` for
 each cholesterol category within that `smoking` category. We 
 realize that there is a tendency of increasing `bmi` from never 
 smoker to current smoker, and the highest `bmi` values are 
-found in current smokers. This provides a view on the data 
-which is complementary to the previous boxplot above.
+found in current smokers.
 
-Based on these data visualizations, a potential relationship 
-is revealed. So it is necessary to choose which variables
+These data visualizations have revealed potential relationships between our variables.  The next step is to choose which variables
 we might include our statistical model in the next section.  
-
-
 
 # Data analysis
 
