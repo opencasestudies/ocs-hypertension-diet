@@ -104,7 +104,7 @@ All of these documents enable data analysts to understand the definitions and co
 
 # Data import
 
-Before doing anything, we should load the libraries needed for the case study.
+First we load the libraries needed for the case study.
 
 ```{r library-load}
 library(knitr)
@@ -119,23 +119,24 @@ library(broom)
 library(plotrix)
 ```
 
-The NYC HANES data file we are working with is a SAS formatted file so 
-we would like to use the function `read_sas()` from the `haven` library 
-to create a [tibble](https://tibble.tidyverse.org) 
-(or `tbl_df`) in R. Tibbles are nice because they do not change variable 
+The NYC HANES data file we are working with is a SAS formatted file, so 
+we will use the function `read_sas()` from the `haven` library 
+to read in the data and create a [tibble](https://tibble.tidyverse.org) 
+(or `tbl_df`) in `R`. Tibbles are nice because they do not change variable 
 names or data types, and they have an enhanced `print()` method which
-makes them easier to use with large datasets containing complex objects. 
+makes it easier to view the data when working with large datasets containing complex objects. 
 The [`haven` library](https://www.rdocumentation.org/packages/haven/versions/2.1.0) 
-is useful to import and export files from 
+is useful to import and export files saved in a variety of formats such as
 [SAS, STATA, and SPSS](http://stanfordphd.com/Statistical_Software.html). 
 
+We now read in the data and check the dimensions of the data object:
 ```{r read-data}
 dat <- read_sas('./data/d.sas7bdat')
+dim(dat)
 ```
 
-This data frame contains `r nrow(dat)` observations of `r ncol(dat)` 
-different variables. In our analysis, only a subset of the variables 
-will be selected.
+Our data contains `r nrow(dat)` observations on `r ncol(dat)` 
+different variables. For our analysis, we will only consider a subset of these variables.
 
 
 # Data wrangling
