@@ -70,45 +70,37 @@ The learning objectives for this case study include:
 
 # What is the data?
 
-For this case study, we will use the New York City (NYC)
-[Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/data/), 
+For this case study, we will use the [New York City (NYC) Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/), 
 modeled on the 
-[National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx). 
-Just click `NYC HANES Analytics Datasets`, it will download automatically.
-NHANES is a population-based, cross-sectional study with data collected 
+[National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx). NHANES is a population-based, cross-sectional study with data collected 
 from a physical examination and laboratory tests, as well as a face-to-face 
 interview and an audio computer-assisted self-interview (ACASI). It is 
 designed to assess the health and nutritional status of adults and children 
 in the United States. NYC HANES is a local version of NHANES, which implies 
 it mainly focus on New York area. 
 
-The data we will use was collected from August 2013 to June 2014 and is called the 
-[NYC HANES 2013-14 Blood Pressure Data](http://nychanes.org/wp-content/uploads/sites/6/2019/01/public_v3_122018.sas7bdat). 
-The survey used a probability sample of non-institutionalized adult 
+To access the NYC HANES data, go to the [NYC HANES data page](http://nychanes.org/data/) and  click the **NYC HANES Analytics Datasets** link; it will download automatically.  (A static link to this datafile can be found [here](http://nychanes.org/wp-content/uploads/sites/6/2019/01/public_v3_122018.sas7bdat).)
+
+The data we will be using in this case study was collected from August 2013 to June 2014 and is called the 
+**NYC HANES 2013-14 Blood Pressure Data**.  The survey used a probability sample of non-institutionalized adult 
 New York City residents (ages 20 years or older) to provide 
 representative citywide estimates. For further details, please refer to 
-its website.
+the [NYC HANES website](http://nychanes.org/).
 
-There are other useful resources available on the website including: 
+In addition to the datafile, there are other useful resources available on the website including: 
 
 * [Data Documents](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_Data-Documentation.pdf): 
-help data users navigate how best to analyze the NYC HANES 2013-14 dataset,given its population-based 
+Provides information on how best to analyze the NYC HANES 2013-14 dataset, given its population-based 
 and clustered sampling scheme.
 * [Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf): 
-provide overall guidance on the use of the NYC HANES 2013-14 dataset and statistical weights, 
+Provides overall guidance on the use of the NYC HANES 2013-14 dataset and statistical weights, 
 as well as other analytic issues pertaining to assessing statistical reliability of estimates.
-* [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf): 
-describe the component of the study the variables come from.
+* [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf): Defines the variables included in the dataset and describes how values for these variables are coded.
 * [Weight Adjustment](http://nychanes.org/wp-content/uploads/sites/6/2015/11/NYC-HANES-Training-Slides_part-2_08222016.pdf): 
-explain how NYC HANES data are weighted in order to compensate for unequal probability of selection. 
-It also teaches you how to choose the right weight.
-* [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf)
+Explains how NYC HANES data are weighted in order to compensate for unequal probability of selection and explains how to choose the correct weight for analysis.
+* [Questionnaire](http://nychanes.org/wp-content/uploads/sites/6/2015/11/28283961_NYC-HANES-2013-14_Questionnaire.pdf): Shows the questionnaire that participants in the study completed.
 
-All of them enable data users to understand the meaning and encoding of the variables better, 
-and then complete the analysis more efficiently.
- 
-The NYC HANES is a population-based, cross-sectional study with data collected from a physical examination 
-and laboratory tests, as well as a face-to-face interview and an audio computer-assisted self-interview (ACASI).
+All of these documents enable data analysts to understand the definitions and coding of the variables and then complete the analysis appropriately.
 
 # Data import
 
