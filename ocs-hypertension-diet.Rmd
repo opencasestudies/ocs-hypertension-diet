@@ -504,52 +504,40 @@ we might include our statistical model in the next section.
 
 # Data analysis
 
-Now that we have spent some time cleaning and looking at 
-data visualizations, we can consider using a statistical 
+Now that we have spent some time cleaning the data and looking at 
+data visualizations, we want to use a statistical 
 model to address our question of interest about which 
-factors are related to risk of hypertension.
+factors are related to the risk of hypertension.
 
-What model can we use in our case? Since we are looking 
+Which model should we use? Since we are looking 
 at whether or not someone develops hypertension, our outcome
-variable is **binary**. So you might think of logistic 
-regression, and yes, you would be pretty close already. 
-However, think of the nature of our dataset and how it was
-collected. It is data obtained from a survey, and there is an 
-important point to consider for analysis of survey data.
+variable (`hypertension`) is **binary**. A binary outcome means a logistic regression model is a natural choice.  However, think of the nature of our dataset and how it was collected. It is data obtained from a survey, and we have to account for this during the analysis of the data.
 
-It is possible, and indeed often happens even with a perfectly
-designed sampling plan, to end up with too many samples in a 
-category. For example, too many women and not enough men, or 
-too many whites and not enough other races. Data weighting 
-makes sense for this kind of data. If we want the data to 
-reflect the whole population, instead of treating each data 
+In a survey sample, we often end up with "too many" samples in a category, often due to the designed sampling plan.  By "too many", we mean more than would be expected based on the make-up of the population from which we are sampling.  For example, we may have a much higher proportion of women in our sample compared to the population and a much lower proportion of men than in the population. This may happen by design if we purposely *oversample* a group that isn't well represented in the overall population.
+
+To analyze our survey data and infer back to the population, we can use data weighting to account for the mismatch between the population and sample. If we want the data to reflect the whole population, instead of treating each data 
 point equally, we weight the data so that taken together,
-our sample can more accurately reflect the entire community.
-
+our sample does reflect the entire community.
 
 ## Survey weights 
 
-### How are survey weights determined?
+### What are survey weights?
 
-Suppose that you have 25 students (20 male and 5 female) in your 
-class, and you want to talk with 5 of them to gauge their 
-understanding of the biostatistics class. By sampling 5 students 
-from the total 25 students, you might get 5 all female students 
-or 4 female and 1 male in your sample. Do you expect this sample 
-to represent the population? Definitely not since there is a higher
-proportion of females in the sample than the population. We can 
+Suppose that we have 25 students (20 male and 5 female) in your biostatistics
+class, and we want to talk with 5 of them to gauge their 
+understanding of the content in the class. Although the proportion of female students in the population is small, we are very interested in getting their opinion, so we want to be sure to have some female students in our sample.  By randomly sampling 5 students 
+from the class, it's quite possible we could end up with all male students in our sample, and we wouldn't learn anything about the female perspective in the class. 
+
+Consider the extreme case where we are going to require that 4 of the 5 people we sample are female students, to be sure we get good information about the female perspective.  We sample 4 of the 5 female students and 1 of the 20 male students.   Do we expect this sample to represent the population? Definitely not, since there is a higher proportion of females in the sample than the population. We can 
 correct for this by weighting our samples so that, taken together, 
-they better reflect the composition of the population we are 
-generalizing to. 
+they better reflect the composition of the population we want to learn about. 
 
-Let's assume we sampled 4 females and 1 male from our population. 
-To calculate the survey weights, we use the following formula:
+Let's assume we sampled 4 of the 5 female students and 1 of the 20 male students from our population. To calculate the survey weights, we could use the following formula:
 
 $$Weight = \frac{Proportion~in~population}{Proportion~in~sample}$$
 $$w_m=Male~Weight = \frac{20/25}{1/25} = 20$$
 $$w_f=Female~Weight = \frac{5/25}{4/25} = 1.25$$
-
-Therefore, 
+We can interpret these weights by saying that each male student in the sample represents 20 male students in the population and each female student in the sample represents 1.25 female students in the population.  Mathematically, we can see this as:
 
 $$ 1~observed~male* w_m = 20~males $$ 
 and 
@@ -559,14 +547,11 @@ $$ 4~observed~females * w_f = 5~females$$
 ![](data/surveyweight.jpeg)
 </center>
 
-By weighting the observations, we can make the sample better 
+By weighting the observations, we make the sample better 
 represent the population.
 
-When we have multiple strata on the data, it might be 
-troublesome to calculate the weight. However, for many survey 
-data sets such as ours, the appropriate weight has already been 
-calculated and is included as a variable in the dataset. In 
-our case study, the weight is calculated and we can simply 
+For complex survey sampling designs, it can be 
+complicated to calculate the weight for each individual observation. However, for many large survey data sets, such as NHANES, the appropriate weight is calculated by the organization that administers the survey and provided as a variable in the dataset. In our case study, this survey weight is calculated and provided as the `surveyweight` variable and we can simply 
 apply this weight and perform a **survey-weighted logistic regression**.
 
 ### Selecting the weights
@@ -584,18 +569,15 @@ Urine Lab results weight and Salica Lab results weight.
 When an analysis involves variables from different components
 of the survey, the analyst should decide whether the outcome 
 is inclusive or exclusive, and then choose certain weights. 
-To learn how to use weights for different purposes, and you 
-are suggested to go through
-[Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
+To learn how to use weights for different purposes, refer to the particular
+[Analytics Guidelines](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf) for the survey. 
 
-As the weight is given in the original dataset, we can use 
- `surveyweight` directly in our analysis. Here,
-we choose CAPI weight, which should be used to analyze 
+In our case, we choose CAPI weight, which should be used to analyze 
 participants responses to all interview questions. All of our 
 survey participants have a value for the `CAPI_WT` variable. 
 We define hypertension as the prior diagnosis of high 
 blood pressure, so we should use the most inclusive one, 
-CAPI weight, to get an inclusive outcome. 
+CAPI weight, to get an inclusive outcome.  We've select this variable and renamed it as `surveyweight` in the earlier data cleaning part of this analysis. 
 
 ## Finite population correction factor
 
