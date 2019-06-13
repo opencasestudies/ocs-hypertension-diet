@@ -519,6 +519,8 @@ To analyze our survey data and infer back to the population, we can use data wei
 point equally, we weight the data so that taken together,
 our sample does reflect the entire community.
 
+To appropriately analyze our data as a survey, we will use the [package `survey`](https://cran.r-project.org/web/packages/survey/survey.pdf), which contains functions for various types of analysis that account for survey design.
+
 ## Survey weights 
 
 ### What are survey weights?
@@ -573,7 +575,7 @@ To learn how to use weights for different purposes, refer to the particular
 [Analytics Guidelines](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf) for the survey. 
 
 In our case, we choose CAPI weight, which should be used to analyze 
-participants responses to all interview questions. All of our 
+participant responses to all interview questions. All of our 
 survey participants have a value for the `CAPI_WT` variable. 
 We define hypertension as the prior diagnosis of high 
 blood pressure, so we should use the most inclusive one, 
@@ -581,12 +583,11 @@ CAPI weight, to get an inclusive outcome.  We've select this variable and rename
 
 ## Finite population correction factor
 
-Now that we have discussed how to weight our samples, 
-there is one more technical detail that we need to 
-address when using survey data. Many methods for analysis 
-of survey data make the 
-**assumption that samples were collected using sampling with replacement**, 
-i.e., any time a sample is drawn, each person in the population has 
+There is one more technical detail that we need to 
+consider when using survey data. Many methods for analysis 
+of survey data make the assumption that
+**samples were collected using sampling with replacement**, 
+i.e., any time a new participant is drawn, each member in the population has 
 an equal chance of being sampled, even if they have 
 already been sampled. This is not usually how surveys
 are actually carried out, so an adjustment may be necessary
@@ -603,8 +604,8 @@ are sampling a sufficiently large proportion of the population),
 then you might sample the same persion twice. The finite 
 population correction (FPC) is used to reduce the variance when
 a substantial fraction of the total population of interest has 
-been sampled. We got the value of `N` and `n` on the
-[Analytics Guideline](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
+been sampled. We can find the value of `N` and `n` for our survey from the
+[Analytics Guidelines](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf). 
 Next let's calculate the FPC as below:
 
 ```{r}
@@ -613,33 +614,33 @@ n <- 1065
 ((N-n)/(N-1))^0.5
 ```
 
-The FPC of our data set is very close to 1 and, in general, 
-you can ingore it. But technically, since the data were
+The FPC of our data set is very close to 1 since our sample is quite small compared to the size of the population, and we could simply ignore the FPC. But technically, since the data were
 collected through sampling without replacement, 
 it is more appropriate to use it.
 
 ## Specify the survey design
 
 We now need to figure out how to specify the survey design 
-and incorporate our sampling weights in our modeling steps. 
-To help us do this, we use thefunction `svydesign()` in 
+and incorporate the sampling weights in our modeling steps. 
+To help us do this, we use the function `svydesign()` in 
 [package `survey`](https://cran.r-project.org/web/packages/survey/survey.pdf).
 This function combines a data frame and all the design information needed to specify 
 a survey design. Here is the list of options provided 
 in this function:
 
-* `ids`: Specify it for cluster sampling, `~0` or `~1` is a formula for no clusters. Cluster sampling is a multi-stage sampling, the total population are divided into several clusters and a simple random sample of clusters are selected. Each element in these clusters are then sampled.
+* `ids`: Formula used to specify the cluster sampling design. *Cluster sampling* is a multi-stage sampling design where the total population is divided into several clusters and a simple random sample of clusters are selected. Then a sample is taken from the elements of each selected cluster. Use `~0` or `~1` as the formula when there are no clusters.
 
-* `data`: Data frame to look up variables in the formula arguments, or database table name
+* `data`: Data frame (or database table name) containing the variables for analysis look up variables in the formula arguments.
 
-* `weights`: Formula or vector specifying sampling weights as an alternative to `prob`
+* `weights`: Dormula or vector specifying the sampling weights. 
 
-* `fpc`: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc derives a without replacement sample, otherwise the default is a with replacement sample.
+* `fpc`: Finite population correction, `~rep(N,n)`  generates a vector of length n where each entry is N (the population size). Default value is 1. The use of fpc indicates a sample without replacement, otherwise the default is a sample with replacement.
  
-* `strata`: Specify it for stratified sampling, which divides members of the population into homogeneous subgroups and then sample independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
+* `strata`: Specification for stratified sampling.  *Stratified sampling* is a sampling design which divides members of the population into homogeneous subgroups and then samples independently in these subpopulations. It is advantageous when subpopulations within an overall population vary.
  
+In our situation, we don't have any clusters or stratified sampling to specify, we just need to include the appropriate survey weights provided with the data.  We will not include a FPC, since our FPC was approximately 1.
  
-Now we use some options to create the design relative to our dataset:
+Here's how we specify the design relative to our dataset:
 
 ```{r}
 hypertension_design <- svydesign(
@@ -652,31 +653,32 @@ hypertension_design <- svydesign(
 The arguments are interpreted as the following:
 
 * `ids = ~1` means there is no cluster sampling
-* `data = hy_df[,-c(1,13)]` tells `svydesign` where to find the actual data
+* `data = hy_df[,-c(1,13)]` tells `svydesign` where to find the variables for analysis
 * `weights= ~hy_df$surveyweight` tells it where to find the weight in our data frame
 
-`summary()` shows the results:
+We can use `summary()` to show the results:
 ```{r}
 summary(hypertension_design)
 ```
 
 "Independent sampling design" means our sampling design is a 
 simple random sample (SRS). By setting other parameters 
-you can also specify different kinds of designs, such as 
-stratified or cluster sampling, etc.
+it is possible to specify different kinds of designs, such as 
+stratified sampling, cluster sampling, or other multi-stage designs.
 
 
 ## Calculate survey-weighted summary statistics
 
-Once we have created our `survey.design` object, we can use the
+Once we have created our `svydesign` object, we can use the
 convenient `svy*` functions to calculate summary statistics that
 account for survey design features.
 
 To calculate the mean and its standard error, use the function 
-`svymean()`. The `svymean()` functino performs a weighted estimation
-with each observation being weighed rather than direct calculation. 
+`svymean()`. The `svymean()` function calculates a weighted estimate for the mean by weighting each observation with it's sampling weight.
 We can compare this result to ignoring the survey weights using the
-`mean()` and `std.error()` functions in base R:
+`mean()` and `std.error()` functions in base R.
+
+Here we look at both the weighted and un-weighted mean BMI:
 
 ```{r}
 svymean(~bmi, hypertension_design)
@@ -686,61 +688,46 @@ mean(hy_df$bmi)
 std.error(hy_df$bmi)
 ```
 
-It seems that there is not a very large difference between 
-these two values and their standard errors. Since this is a
-simple random sample the difference is not that obvious. 
-But it will give precision estimates that incorporate the 
-effects of stratification and clustering if you choose more 
-complex sample design. 
+There is not a very large difference between 
+these two values and their standard errors.  However, the survey-weighted results are "better" because they account for the sampling design of the HANES NYC survey.
 
-To calculate the confidence interval, we can use the 
-function `confint()` directly:
+To calculate a survey-weighted confidence interval for mean BMI value, we use the 
+function `confint()` directly on the `svymean()` function:
 
 ```{r}
 confint(svymean(~bmi, hypertension_design))
 ```
 
-Subgroup statistics are also easy to calculate with
-function `svyby()`:
+Statistics for subgroups are also easy to calculate with the
+function `svyby()`.  Here we look at mean BMI within groups defined by diet quality.
 ```{r}
 svyby(~bmi, by=~diet, design=hypertension_design, 
       FUN = svymean)
 ```
 
-If you are particularly interested in one group, 
-you can use function `subset()` :
-
-
-For example, if we are only interested in females
+If we are particularly interested in one subgroup of individuals, 
+we can use the `subset()` to define a design for our subgroup of interest.  For example, if we are only interested in learning about the female population:
 ```{r}
-svymean(~bmi, subset(hypertension_design,gender=="Female"))
+h_design_female <- subset(hypertension_design,gender=="Female")
+svymean(~bmi, h_design_female)
 ```
 
-or males 
-```{r}
-svymean(~bmi, subset(hypertension_design,gender=="Male"))
-```
+We estimate that the mean BMI for females in the population is 28.1.
 
-It seems that mean bmi and the associated SEs are a 
-little higher for females compared to males. 
+Note that if we are limiting our analysis to a subgroup of the data, we **must** use the subset command to define a new survey design that relates to this new subpopulation.  This is because the survey weights need to be updated to reflect how the data represents this new population.  The `subset` command will appropriately update the survey weights so the analysis reflects the survey design of the subsetted data.  We **cannot** simply use a subset of the data with the original survey design.
 
 
 ## Survey-weighted logistic regression
 
 ### Fit a simple model
 
-$logit(p)= log(\frac{p}{1-p)})=X^{T}\beta$, where $p=P(Y=1)=E(Y)$ 
+Logistic regression is widely used to when the response variable is binary.  The standard logistic regression equation can be written as:
 
-Logistic regression is widely used to deal with binary response 
-variable. As we mentioned above, our dataset is a survey dataset, 
-and we need to take survey weights into account, so therefore we 
-need to fit the model with the survey weighted data. To do this,
-we can just use the `svyglm()` function from the `survey` package.
+$logit(p)= log(\frac{p}{1-p})=X^{T}\beta$, where $p=P(Y=1)=E(Y)$ 
 
-It's similar to fitting a normal logistic regression, and the 
-only difference is that instead of using the original data set 
-in the `data` argument, you should input the object from the 
-output of `svydesign()` to the `design` argument in the function.
+As we mentioned above, our data comes from a survey design so we need to take survey weights into account in our analysis.  We can do that with a survey-weighted logistic regression using the `svyglm()` function from the `survey` package.
+
+The `svyglm()` function works similarly to using `glm()` to fit a standard logistic regression model.  The only difference is that instead of using the original data set in the `data` argument within `glm()`, we instead input the survey design object from `svydesign()` in the `design` argument in `svyglm()`.
 
 First, we need to recode our factor output as a binary (0-1) variable. 
 
@@ -750,46 +737,47 @@ hypertension_design$variables$hypertension <-
          yes = 0, no =1)
 ```
 
-Then we fit our survey-weighted logistic regression model and 
-look at the summarized output. Firstly, just start with a simple
-model by choosing one variable. `smoking` is chosen for test:
+Now we can fit our survey-weighted logistic regression model and 
+look at the summarized output. We will start with a simple
+model by choosing one variable, `smoking`, as a predictor:
 
 ```{r}
 g <- svyglm(hypertension ~ smoking, 
     family = quasibinomial(), design = hypertension_design)
+summary(g)
 ```
 
-`tidy()` function in `broom` package can provide a dataframe 
-representation about the models output. Just put the model
-name in it and you will receive a nice dataframe!
+The `tidy()` function in the `broom` package can provide a dataframe 
+representation of the model's output. Now we can see the model output as a nice dataframe!
 
 ```{r}
 g_res <- tidy(g)
 g_res
 ```
 
-All of the prediction variables are list in `term` column and the left part 
-is its corresponding estimation value, standard error etc. After substracting 
-coefficient value and standard error, you can build confidence interval by hand.
+As in standard logistic regression using `glm()`, we see the coefficient estimate, standard error, test statistic, and p-value for each term in our model.  We can still get survey-weighted confidence intervals with the `confint()` function:
+```{r}
+confint(g)
+```
+
 
 What does the model output tells us about the relationship 
 between predictor variables and the chance of getting hypertension? 
-Look at coefficient table. For predictor variable `smoking`,
-baseline setting is 'Never smoker'. Exponentiated coefficients
-for 'Former smoker' is `r exp(g_res$estimate)[2]`, 
-which means 'Former smoker' is associated with an odds of getting hypertension of 56% 
-of that for 'Never smoker'; Similarly, 'Current smoker' is 
-associated with an odds of getting hypertension of 69% 
-of that for 'Never smoker'. What's more, we can see the 
-p-value for `smoking` are all less than 0.05, suggesting 
-their significance in this case.
+Look at the coefficient table. For the predictor variable `smoking`, the
+reference category is 'Never smoker'. So the coefficient for 'Former Smoker', `r g_res$estimate[2]`, tells us that the log odds of hypertension for a former smoker is 0.58 lower than for a never smoker.  It makes more sense to exponentiate the coefficients and interpret them as odds ratios:
+```{r}
+exp(g_res$estimate)
+```
+
+The exponentiated coefficient for 'Former smoker' is `r exp(g_res$estimate)[2]`, 
+which means that former smokers have a 44% reduced odds of hypertension compared to never smokers. Similarly, the exponentiated coefficient for 'Current smoker' is `r exp(g_res$estimate)[3]`, meaning current smokers have a 31% reduction in the odds of hypertension compared to those who have never smoker.  What's more, we can see the 
+p-values are less than 0.05 for both of these coefficients, suggesting 
+these odds ratios are significantly different than 1.
 
 
 ### Fit a full model
 
-After being familiar with how to interpret output of 
-logistic regression model, try to fit a full model 
-including all variables: 
+Now we can fit a full model that includes all of our variables of interest: 
 
 ```{r}
 g1 <- svyglm(hypertension ~ 
@@ -798,16 +786,15 @@ g1 <- svyglm(hypertension ~
              family = quasibinomial(), 
              design = hypertension_design)
 g1_res <- tidy(g1)
-#g1_res[-3]
+g1_res %>% as.data.frame()
 ```
 
-One interesting thing is that both the exponentiated 
-coefficients and the p-value for `smoking` in this model 
-increase sharply! Why will we get this change? 
+One interesting thing is that both 
+coefficients for `smoking` in this change.  Why did this happen? 
 
-Do you remember in section Exploratory data analysis, we found
+When we made plots to investigate the relationships between the variables, we found
 there was a correlation between `smoking` and other variables.
-This finding proves that when adding other variables, 
+So adding other variables to the model may change the, 
 influence of former predictor variables are likely to change.
 
 Now, let's interpret the new output. One categorical
