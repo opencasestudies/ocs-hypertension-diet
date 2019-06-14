@@ -1,6 +1,6 @@
 ---
 title: OpenCaseStudies - Identifying factors that contribute to hypertension using NHANES data
-author: Kexin Wang
+author: OpenCaseStudies Team
 output:
   html_document:
     keep_md: false
@@ -23,7 +23,8 @@ options(digits = 2)
 Hypertension is one of the most common diseases in the world. 
 It has been associated with myocardial infarction, stroke, renal 
 failure, and death if not detected early and treated appropriately.
-Around 75 million American adults (32%) are estimated to have 
+Some [health-realted organizations](https://www.cdc.gov/brfss/) did relevant work, 
+which shows around 75 million American adults (32%) are estimated to have 
 high blood pressure, costing the US around $48.6 billion 
 each year. This total includes the cost of healthcare services, 
 medications to treat high blood pressure, and missed days of work.
@@ -647,13 +648,13 @@ hypertension_design <- svydesign(
   id = ~1,
   #fpc = ~rep(N,n),
    weights = ~hy_df$surveyweight,
-  data = hy_df[,-c(1,13)]
+  data = hy_df
 )
 ```
 The arguments are interpreted as the following:
 
 * `ids = ~1` means there is no cluster sampling
-* `data = hy_df[,-c(1,13)]` tells `svydesign` where to find the variables for analysis
+* `data = hy_df` tells `svydesign` where to find the variables for analysis
 * `weights= ~hy_df$surveyweight` tells it where to find the weight in our data frame
 
 We can use `summary()` to show the results:
@@ -701,7 +702,7 @@ confint(svymean(~bmi, hypertension_design))
 Statistics for subgroups are also easy to calculate with the
 function `svyby()`.  Here we look at mean BMI within groups defined by diet quality.
 ```{r}
-svyby(~bmi, by=~diet, design=hypertension_design, 
+svyby(~bmi, by=~diet, design = hypertension_design, 
       FUN = svymean)
 ```
 
@@ -729,35 +730,36 @@ As we mentioned above, our data comes from a survey design so we need to take su
 
 The `svyglm()` function works similarly to using `glm()` to fit a standard logistic regression model.  The only difference is that instead of using the original data set in the `data` argument within `glm()`, we instead input the survey design object from `svydesign()` in the `design` argument in `svyglm()`.
 
-First, we need to recode our factor output as a binary (0-1) variable. 
-
-```{r}
-hypertension_design$variables$hypertension <- 
-  ifelse(hypertension_design$variables$hypertension == 'No', 
-         yes = 0, no =1)
-```
-
 Now we can fit our survey-weighted logistic regression model and 
 look at the summarized output. We will start with a simple
 model by choosing one variable, `smoking`, as a predictor:
 
-```{r}
+```{r, warning=TRUE}
 g <- svyglm(hypertension ~ smoking, 
     family = binomial(link = 'logit'), design = hypertension_design)
 summary(g)
 ```
 
+If we allow `warning = TRUE`, a warning would appear as "non-integer #successes in a binomial glm!". But everything is right here! `glm` and `svyglm` are just picky. They warn if they detect that the no. of trials or successes is non-integral, but they go ahead and fit the model anyway. If you want to suppress the warning (and you're sure it's not a problem), use `family=quasibinomial()` instead.
+
+```{r, warning=TRUE}
+g0 <- svyglm(hypertension ~ smoking, 
+    family = quasibinomial(link = 'logit'), design = hypertension_design)
+summary(g0)
+```
+
+
 The `tidy()` function in the `broom` package can provide a dataframe 
 representation of the model's output. Now we can see the model output as a nice dataframe!
 
 ```{r}
-g_res <- tidy(g)
+g_res <- tidy(g0)
 g_res
 ```
 
 As in standard logistic regression using `glm()`, we see the coefficient estimate, standard error, test statistic, and p-value for each term in our model.  We can still get survey-weighted confidence intervals with the `confint()` function:
 ```{r}
-confint(g)
+confint(g0)
 ```
 
 
@@ -766,7 +768,7 @@ between predictor variables and the chance of getting hypertension?
 Look at the coefficient table. For the predictor variable `smoking`, the
 reference category is 'Never smoker'. So the coefficient for 'Former Smoker', `r g_res$estimate[2]`, tells us that the log odds of hypertension for a former smoker is 0.58 lower than for a never smoker.  It makes more sense to exponentiate the coefficients and interpret them as odds ratios:
 ```{r}
-exp(g$coefficients)
+exp(g0$coefficients)
 ```
 
 The exponentiated coefficient for 'Former smoker' is `r exp(g_res$estimate)[2]`, 
@@ -863,13 +865,13 @@ What would happen if we didn't know to use survey weighting in our analysis and 
 logistic regression? We can compare the results of using `glm()` to using `svyglm()` to analyze the data.
 
 ```{r}
-g_svy <- glm(hypertension ~ smoking, 
+g_glm <- glm(hypertension ~ smoking, 
           family = binomial(link = 'logit'), 
           data = hy_df)
 
 
-g_svy_res <- tidy(g_svy)
-g_svy_res
+g_glm_res <- tidy(g_glm)
+g_glm_res
 ```
 
 
@@ -880,7 +882,7 @@ The `merge()` function offer an efficient way
 to merge two data frames by common columns or row names.
 
 ```{r}
-merge(g_res[1:3], g_svy_res[1:3], by = 'term')
+merge(g_res[1:3], g_glm_res[1:3], by = 'term')
 ```
 
 The first two columns here refer to the survey-weighted model and the last two columns show the standard logistic regression results.  We see that the coefficient estimates are different between the two models and that the

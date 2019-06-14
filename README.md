@@ -80,7 +80,7 @@ we can specify the label names via `coefs=`.
 
 
 
-
+OpenCaseStudy Team: Stephanie Hicks, Leah Jager, Margaret Taub, Kexin Wang, Hanchao Zhang
 
 
 
