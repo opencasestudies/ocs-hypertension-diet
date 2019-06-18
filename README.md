@@ -1,4 +1,6 @@
 # osc-hypertension-diet
+## OpenCaseStudy Team: Stephanie Hicks, Leah Jager, Margaret Taub, Kexin Wang, Hanchao Zhang
+
 
 This case study is part of the [OpenCaseStudies](https://opencasestudies.github.io) project. This work is licensed under the Creative Commons Attribution-NonCommercial 3.0 ([CC BY-NC 3.0](https://creativecommons.org/licenses/by-nc/3.0/us/)) United States License.
 
@@ -78,9 +80,6 @@ to introduce some basic options here:
 * `coefs=`: The label names are default setting, but to make it more readable,
 we can specify the label names via `coefs=`.
 
-
-
-OpenCaseStudy Team: Stephanie Hicks, Leah Jager, Margaret Taub, Kexin Wang, Hanchao Zhang
 
 
 
