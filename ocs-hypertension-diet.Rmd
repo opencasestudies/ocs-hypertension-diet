@@ -176,7 +176,7 @@ In this example, we select the three variables of `KEY`, `DMQ_14_1`, and `DX_DBT
 Now we select and rename the 13 variables we will consider in our analysis:
 
 ```{r select-cols}
-hypertension_df <- 
+hy_df <- 
   dat %>% 
     select(id = KEY,
            age = SPAGE,
@@ -184,17 +184,18 @@ hypertension_df <-
            gender = GENDER,
            diet = DBQ_1,
            income = INC20K,
-           diabetes = DX_DBTS,
+           diabetes = DIQ_1,
            bmi = BMI,
            cholesterol = BPQ_16,
            drink = ALQ_1_UNIT,
            smoking = SMOKER3CAT,
            hypertension = BPQ_2,
-           surveyweight = CAPI_WT)
+           surveyweight = EXAM_WT)
 ```
 
 We will give some description of each variable below, but for full details we refer the reader to the
 [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf).
+
 
 
 ### Non-categorical variables 
@@ -229,10 +230,10 @@ We will consider ten categorial variables:
     + 3 = Good
     + 4 = Fair
     + 5 = Poor
-  * `diabetes`: Previously diagnosed with diabetes
-    + 1 = Diabetic with diagnosis
-    + 2 = Diabetic without diagnosis 
-    + 3 = Not diabetic
+  * `diabetes`:  Has SP ever been told by a doctor or health professional that SP has diabetes or sugar diabetes?
+    + 1 = Yes
+    + 2 = No 
+    + 3 = Prediabetes
   * `cholesterol`: an oil-based substance. If concentrations get too high, it puts people at risk of heart diseases
     + 1 = High cholesterol value
     + 2 = Low cholesterol value
@@ -269,12 +270,14 @@ including a count of missing values, which can be very important
 in deciding what variables to consider in downstream analysis.
 
 ```{r}
-summary(hypertension_df)
+summary(hy_df)
+
 ```
+We see that now the `summary()` function gives us counts for each category of these variables rather than the meaningless numerical summaries, like means, it was giving before.
 
 We see that certain variables have a large number of `NA` values; in 
-particular `drink` has `r sum(is.na(hypertension_df$drink))` 
-`NA` values and `diabetes` has `r sum(is.na(hypertension_df$diabetes))` 
+particular `drink` has `r sum(is.na(hy_df$drink))` 
+`NA` values and `diabetes` has `r sum(is.na(hy_df$diabetes))` 
 `NA` values. Directly removing rows containing missing data is not desirable 
 considering the large number of such rows, so we decided to look more 
 closely at the missing values. Using the 
@@ -290,14 +293,14 @@ table(dat$ALQ_1)
 ```
 
 Now we see why there are so many missing values for `drink`. 
-Among these `r sum(is.na(hypertension_df$drink))` missing values, 
+Among these `r sum(is.na(hy_df$drink))` missing values, 
 `r sum(dat$ALQ_1 == 0, na.rm = TRUE)` samples never drink and 
 there are just 
-`r sum(is.na(hypertension_df$drink)) - sum(dat$ALQ_1 == 0, na.rm = TRUE)`
+`r sum(is.na(hy_df$drink)) - sum(dat$ALQ_1 == 0, na.rm = TRUE)`
 actual missing values. Therefore, merging these two variables 
 as one is a better way to capture drinking that includes those who never drink. We label those subjects who answered `0` to variable `AlQ_1` (those who never drink) as 4.
 ```{r}
-hypertension_df$drink[which(dat$ALQ_1==0)] <- 4
+hy_df$drink[which(dat$ALQ_1==0)] <- 4
 ```
 
 Now our variable `drink` has values as follows:
@@ -310,19 +313,10 @@ Now our variable `drink` has values as follows:
 
 And we can see only 6 missing values for `drink` are left now.
 ```{r}
-summary(hypertension_df$drink)
+summary(hy_df$drink)
 ```
 
-In the next step, we aim to remove rows containing missing 
-data with the function `drop_na()` in library `tidyr` and store in a new data frame:
 
-```{r}
-hy_df <- 
-  hypertension_df %>%
-  drop_na()
-```
-
-This will drop all rows which still contain missing values. By checking the dimensions of our new data frame, `hy_df`, we see that we retain `r nrow(hy_df)` observations with `r ncol(hy_df)` different variables.
 ```{r}
 dim(hy_df)
 ```
@@ -372,8 +366,8 @@ hy_df$income <-  factor(hy_df$income, levels=c(1:6),
                                  '$40,000 - $59,999','$60,000 - $79,999',
                                  '$80,000 - $99,999','$100,000 or more'))
 
-hy_df$diabetes <-  factor(hy_df$diabetes, levels=c(3,1,2), 
-                          labels=c('Not diabetic','Diabetic dx','Diabetic but no dx'))
+hy_df$diabetes <-  factor(hy_df$diabetes, levels=c(2,1,3), 
+                          labels=c('No','Yes','Prediabetes'))
 
 hy_df$cholesterol <-  factor(hy_df$cholesterol, levels=c(2,1), 
                              labels=c('Low value','High value'))
@@ -388,13 +382,6 @@ hy_df$hypertension <-  factor(hy_df$hypertension, levels=c(2,1),
                               labels=c('No','Yes'))
 ```
 
-Now let's look at a summary of our `hy_df` data frame. 
-
-```{r}
-summary(hy_df)
-```
-
-We see that now the `summary()` function gives us counts for each category of these variables rather than the meaningless numerical summaries, like means, it was giving before.
 
 # Exploratory data analysis
 
@@ -408,8 +395,20 @@ a powerful tool for data visualization. A link for its cheat sheet is [here]( ht
 The type of plot we will make will depend on the type of variable(s) we are plotting.  First, we try to plot one categorical variable (`hypertension`) with 
 one numerical variable (`age`). Since `hypertension` is the categorical variable, we can compare the age distributions between those who are hypertense and those who are not using side-by-side boxplots.  Here the variable on the `x` axis is `hypertension` and the variable on the `y` axis is `age`, which corresponds to the `aes(x=hypertension, y=age)` definition in the `ggplot` aesthetic definition.
 
+One thing you need to pay attention to is the missing value, which would result in a wrong plot. In the next step, we aim to remove rows containing missing 
+data with the function `drop_na()` in library `tidyr` and store in a new data frame:
+
+```{r}
+hy_p_df <- 
+  hy_df %>%
+  drop_na()
+```
+
+This will drop all rows which still contain missing values. By checking the dimensions of our new data frame, `hy_p_df`, we see that we retain `r nrow(hy_p_df)` observations with `r ncol(hy_p_df)` different variables.
+
+
 ```{r, fig.width=4, fig.height=4}
-p1 <- hy_df %>% 
+p1 <- hy_p_df %>% 
         ggplot(aes(x = hypertension, y = age)) +
           geom_boxplot() + 
           ggtitle('Distribution of age by hypertension status')
@@ -421,13 +420,13 @@ Comparing the medians of these two boxplots, we see that people who are hyperten
 What about a plot for investigating the relationship between `hypertension` and `gender`? Let's try three different ways to plot the categorical variable `gender` with `hypertension`.  We'll use the function `ggarrange()` in [package `ggpubr`](https://www.rdocumentation.org/packages/ggpubr/versions/0.2) to arrange multiple ggplots on the same page. 
 
 ```{r, fig.width=11, fig.height=5}
-p2 <- hy_df %>% 
+p2 <- hy_p_df %>% 
         ggplot(aes(x = hypertension, y=gender)) + 
           geom_boxplot() + ggtitle('distribution of gender')
-p3 <- hy_df %>% 
+p3 <- hy_p_df %>% 
         ggplot(aes(x = hypertension, fill = gender)) + 
           geom_bar() + ggtitle('distribution of gender')
-p4 <- hy_df %>% 
+p4 <- hy_p_df %>% 
         ggplot(aes(x = hypertension, fill = gender)) + 
           geom_bar(position = "fill") + 
           ggtitle('distribution of gender') + 
@@ -447,10 +446,10 @@ But are these plots really the right ones for our question of interest?  Rather 
 function of `gender`, rather than the other way around. 
 
 ```{r, fig.width=11, fig.height=5}
-p3b <- hy_df %>% 
+p3b <- hy_p_df %>% 
         ggplot(aes(x = gender, fill = hypertension)) + 
           geom_bar() + ggtitle('distribution of hypertension')
-p4b <- hy_df %>% 
+p4b <- hy_p_df %>% 
         ggplot(aes(x = gender, fill = hypertension)) + 
           geom_bar(position = "fill") + 
           ggtitle('distribution of hypertension') + 
@@ -464,11 +463,11 @@ From this visualization we see that a higher proportion of males than females in
 Next, we apply the same visualization methods on other variables to explore relationships between them.
 
 ```{r, fig.width=9, fig.height=5}
-p5 <- hy_df %>% 
+p5 <- hy_p_df %>% 
         ggplot(aes(x = smoking, fill = drink)) + 
           geom_bar(position = "fill") + 
           ggtitle('smoking and drink') + ylab('proportion')
-p6 <- hy_df %>% 
+p6 <- hy_p_df %>% 
         ggplot(aes(x = cholesterol, fill = diabetes)) + 
           geom_bar(position = "fill") + 
           ggtitle('cholesterol and diabetes') + ylab('proportion')
@@ -485,7 +484,7 @@ Suppose we wanted to look at the relationship between BMI, cholesterol level, an
 We can do this in `ggplot` by taking the plot statement for two variables (`cholesterol` and `bmi`) and adding a `facet_wrap()` function for the third variable we're dividing by.
 
 ```{r}
-p7 <- hy_df %>% 
+p7 <- hy_p_df %>% 
         ggplot(aes(x = cholesterol, y = bmi, fill = cholesterol)) +
           geom_boxplot() + facet_wrap(~ smoking, ncol = 3)
 p7
@@ -569,18 +568,36 @@ collected: CAPI  weight, Physical weight, Blood Lab result weight,
 Urine Lab results weight and Salica Lab results weight. 
 **The determination of the most appropriate weight to use for a specific analysis depends upon the variables selected by the data analyst**. 
 
+We will give a table to indicate each variable's origin stream:
+
+
+| Variable names   |      Component      |
+|---------------------------------|---------------------------------|
+| age                                   | CAPI                                                                                                                                                                 |
+| race                                  | CAPI                                                                                                                                                                 |
+| gender                                | CAPI                                                                                                                                                                 |
+| diet                                  | CAPI                                                                                                                                                                 |
+| income                                | CAPI                                                                                                                                                                 |
+| diabetes                               | CAPI                                                                                                                                                               |
+| cholesterol                           | CAPI                                                                                                                                                                 |
+| drink                                 | CAPI                                                                                                                                                                 |
+| smoking                               | CAPI                                                                                                                                                                 |
+| hypertension                           | CAPI                                                                                                                                                                |
+| bmi                                    | EXAM                                                                                                                                                                |
+
+
 When an analysis involves variables from different components
 of the survey, the analyst should decide whether the outcome 
 is inclusive or exclusive, and then choose certain weights. 
 To learn how to use weights for different purposes, refer to the particular
 [Analytics Guidelines](http://nychanes.org/wp-content/uploads/sites/6/2015/11/ANALYTIC-GUIDELINES-2016_V2.pdf) for the survey. 
 
-In our case, we choose CAPI weight, which should be used to analyze 
-participant responses to all interview questions. All of our 
-survey participants have a value for the `CAPI_WT` variable. 
-We define hypertension as the prior diagnosis of high 
-blood pressure, so we should use the most inclusive one, 
-CAPI weight, to get an inclusive outcome.  We've select this variable and renamed it as `surveyweight` in the earlier data cleaning part of this analysis. 
+In our case, we choose EXAM weight since our analysis is exclusive. Do 
+you remember we have moved all of the missing value? Now our dataset is 
+limited to those who receive physical exam test, which means all of our 
+survey participants have a value for the `EXAM_WT` variable. We've select
+this variable and renamed it as `surveyweight` in the earlier data 
+cleaning part of this analysis. 
 
 ## Finite population correction factor
 
@@ -611,7 +628,7 @@ Next let's calculate the FPC as below:
 
 ```{r}
 N <-  6825749
-n <- 1065
+n <- dim(hy_df)[1]
 ((N-n)/(N-1))^0.5
 ```
 
@@ -651,6 +668,21 @@ hypertension_design <- svydesign(
   data = hy_df
 )
 ```
+```{r}
+hypertension_design2 <- svydesign(
+  id = ~1,
+   weights = ~hy_p_df$surveyweight,
+  data = hy_p_df
+)
+
+v2 <- hypertension_design2$variables[,1]
+v1 <- hypertension_design$variables
+
+list1 <- as.numeric(row.names(v1[v1$id %in% v2,]))
+plot(hypertension_design$prob[list1],hypertension_design2$prob)
+```
+
+
 The arguments are interpreted as the following:
 
 * `ids = ~1` means there is no cluster sampling
@@ -935,13 +967,13 @@ more readable, we can specify the label names.
 res$term <- c('age' ,'age' ,'bmi','bmi',
 'gender','cholesterol','gender',
 'cholesterol','current smoker',
-'diabetic with diagnosis','current smoker',
-'diabetic with diagnosis', 'former smoker',
+'current smoker','diabetes',
+ 'former smoker','diabetes',
 'former smoker', 'good diet','fair diet',
 'very good diet','good diet','fair diet', 
 'very good diet','excellent diet',
-'diabetic without diagnosis','excellent diet',
-'diabetic without diagnosis') 
+'prediabetes','excellent diet',
+'prediabetes') 
 ```
 
 Now, let's plot the confidence intervals using `ggplot`.
@@ -956,7 +988,8 @@ ggplot(res, aes(x = estimate, y = term),
                     shape = factor(method)),size = 3)+
      theme(axis.title.x = element_blank(),
      axis.title.y = element_blank()) +
-    ggtitle(expression(atop(bold("95% condfidence interval"))))
+    ggtitle(expression(atop(bold("95% condfidence interval"))))+
+   theme_minimal()
 ```
 
 ```{r, message=FALSE}
@@ -966,10 +999,10 @@ ggsave("data/Finalplot.png", plot = last_plot(), device = "png")
 In this plot, the red designates the confidence interval constructed by `svyglm()`
 (`ci_svyglm`) and the blue designates the confidence interval constructed by `glm()`(`ci_glm`)
 
-We see that `cholesterol`, `diabetes`, `smoking` and `diet`
+We see that `diabetes`, `smoking` and `diet`
 have larger differences in confidence intervals comparing 
 the standard glm to the survey-weighted glm results, while 
-`age`, `bmi` and `gender` have only small differences. We also see that, in general, the confidence intervals from `ci_svyglm` are larger than those from `ci_glm`. So we would not get the "correct" results if we failed to take into account the survey weighting in our analysis.
+`age`, `bmi`, `cholesterol` and `gender` have only small differences. We also see that, in general, the confidence intervals from `ci_svyglm` are larger than those from `ci_glm`. So we would not get the "correct" results if we failed to take into account the survey weighting in our analysis.
 
 # Summary of results
 
