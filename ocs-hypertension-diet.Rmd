@@ -669,6 +669,7 @@ hypertension_design <- svydesign(
 )
 ```
 ```{r}
+#this part is used to compare the svy-design with and without missing value
 hypertension_design2 <- svydesign(
   id = ~1,
    weights = ~hy_p_df$surveyweight,
