@@ -1,0 +1,10 @@
+language: r
+
+warnings_are_errors: false
+cache: packages
+
+r_github_packages: rstudio/rmarkdown
+
+script:
+  - R -e "rmarkdown::render('ocs-hypertension-diet.Rmd')"
+  
