@@ -1,7 +1,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <!-- badges: start -->
-[![Build Status](https://travis-ci.org/opencasestudies/ocs-hypertension-diet.svg?branch=master)](https://travis-ci.org/opencasestudies/ocs-hypertension-diet) a
+[![Build Status](https://travis-ci.org/opencasestudies/ocs-hypertension-diet.svg?branch=master)](https://travis-ci.org/opencasestudies/ocs-hypertension-diet)
 <!-- badges: end -->
 
 # osc-hypertension-diet
