@@ -1,0 +1,24 @@
+Description: This is a Description.
+License: GPL-3
+Authors@R: person(given = "Just",
+           family = "Placeholder",
+           email = "blah@gmail.com")
+Package: ocs.healthexpenditure
+Type: package
+Title: Open Case Studies
+Version: 0.0.1
+Depends: R (>= 3.4.0)
+Imports: 
+    tidyverse,
+    ggplot2,
+    ggrepel,
+    ggpubr,
+    kableExtra,
+    survey,
+    haven,
+    plotrix,
+    ggstance,
+    broom,
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr
