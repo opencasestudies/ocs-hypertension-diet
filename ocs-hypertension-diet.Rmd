@@ -3,6 +3,7 @@ title: OpenCaseStudies - Identifying factors that contribute to hypertension usi
 author: OpenCaseStudies Team
 output:
   html_document:
+    code_download: yes
     keep_md: false
     highlight: tango
     number_sections: no
