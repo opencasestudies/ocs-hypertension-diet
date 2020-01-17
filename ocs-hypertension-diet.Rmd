@@ -1,5 +1,5 @@
 ---
-title: OpenCaseStudies - Identifying factors that contribute to hypertension using NHANES data
+title: OpenCaseStudies - Identifying factors related to hypertension using NHANES data
 author: OpenCaseStudies Team
 output:
   html_document:
@@ -24,21 +24,16 @@ options(digits = 2)
 Hypertension is one of the most common diseases in the world. 
 It has been associated with myocardial infarction, stroke, renal 
 failure, and death if not detected early and treated appropriately.
-Some [health-realted organizations](https://www.cdc.gov/brfss/) did relevant work, 
-which shows around 75 million American adults (32%) are estimated to have 
+According to the Center for Disease Control's [Behavioral Risk Factor Surveillance System (BRFSS)](https://www.cdc.gov/brfss/), around 75 million American adults (32%) are estimated to have 
 high blood pressure, costing the US around $48.6 billion 
 each year. This total includes the cost of healthcare services, 
 medications to treat high blood pressure, and missed days of work.
 
-The link between hypertension and physical measurements has 
-been well-established in previous studies. In this case study, we will explore the relationship between hypertension and a variety of risk factors.
+In this case study, we will explore the relationship between hypertension and a variety of risk factors.
 
-This case study introduces survey methods for logistic regression, utilizing survey-weighted logistic regression and comparing the results to standard logistic regression. The plot below summarizes the results from this analysis 
-illustrating that the standard error of coefficients calculated by the 
-two models ([logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) 
-and [survey-weighted logistic regression](http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=9591E971AF4061BBF8F98083422FF313?doi=10.1.1.151.6423&rep=rep1&type=pdf))
-are different. We will discuss later which model is a better choice 
-for this dataset. 
+This case study introduces survey methods for logistic regression and compares the results from survey-weighted logistic regression to standard logistic regression. The plot below visualizes the comparison between these two methods; it shows the estimated coefficients (with standard error) from each method for the risk factors under consideration.  Note that both the estimates and their standard errors are different when using ([logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) 
+and [survey-weighted logistic regression](http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=9591E971AF4061BBF8F98083422FF313?doi=10.1.1.151.6423&rep=rep1&type=pdf)). We will discuss later which model is a better choice 
+for this analysis. 
 
 <center>
 ![](data/FinalPlot.png)
@@ -49,17 +44,15 @@ along with their purpose in this particular case study:
 
 |Library|Purpose|
 |---|--------------------------------------------------------------------------------------------------------------|
-|`ggplot2`| A system for declaratively creating graphics|
+|`tidyverse`|A coherent system of packages for data manipulation, exploration and visualization|
+|`haven`|A useful tool to import and export data from SAS, STATA, and SPSS formats|
+|`broom`|Takes the messy output of built-in functions in R, such as lm, nls, or t.test, and turns it into tidy data frames|
+|`survey`|Provides useful functions for analyzing complex survey samples|
 |`ggpubr`|Provides some easy-to-use functions for creating and customizing 'ggplot2'- based publication ready plots|
 |`ggrepel`|Provides text and label geoms for 'ggplot2' that help to avoid overlapping text labels|
-|`tidyverse`|A coherent system of packages for data manipulation, exploration and visualization |
 |`kableExtra`|Helps with building common complex tables and manipulating table styles; creates awesome HTML tables|
-|`survey`|Provides useful functions for analyzing complex survey samples|
-|`haven`|A useful tool to import and export data from SAS, STATA, and SPSS formats|
 |`plotrix`|A variety of plots, various labeling, axis and color scaling functions|
-|`ggstance`|Provides flipped components for 'ggplot2': horizontal versions of 'Stats' and 'Geoms', and vertical versions of 'Positions'|
-|`broom`|Takes the messy output of built-in functions in R, such as lm, nls, or t.test, and turns it into tidy data frames|
-
+|`knitr`|---|
 
 In order to run the code for this case study, please ensure you have these packages installed. 
 
@@ -72,14 +65,14 @@ The learning objectives for this case study include:
 
 # What is the data?
 
-For this case study, we will use the [New York City (NYC) Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/), 
+For this case study, we will use data from the [New York City (NYC) Health and Nutrition Examination Survey (NYC HANES)](http://nychanes.org/), 
 modeled on the 
 [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/default.aspx). NHANES is a population-based, cross-sectional study with data collected 
 from a physical examination and laboratory tests, as well as a face-to-face 
 interview and an audio computer-assisted self-interview (ACASI). It is 
 designed to assess the health and nutritional status of adults and children 
 in the United States. NYC HANES is a local version of NHANES, which implies 
-it mainly focus on New York area. 
+it mainly focuses on New York area. 
 
 To access the NYC HANES data, go to the [NYC HANES data page](http://nychanes.org/data/) and  click the **NYC HANES Analytics Datasets** link; it will download automatically.  (A static link to this datafile can be found [here](http://nychanes.org/wp-content/uploads/sites/6/2019/01/public_v3_122018.sas7bdat).)
 
@@ -150,11 +143,10 @@ with `r ncol(dat)` variables. Some variables are not relevant
 to our current research question, such as 
 _'LAQ1: What language is being used to conduct this interview'_. 
 
-Previous work has shown hypertension is associated  with 
-drinking, smoking, cholesterol values, and triglyceride levels. 
-Instead of looking at these same risk factors, we will consider whether other variables -- which 
+Although previous research has shown hypertension is associated  with 
+drinking, smoking, cholesterol values, and triglyceride levels, we will instead consider whether other variables -- which 
 at first might not seem highly related to hypertension -- have an association with 
-hypertension after all. We selected 13 covariates for our 
+hypertension. We've selected 13 variables to consider in our 
 analysis.  
 
 We will use the `select()` function from the `dplyr` package
@@ -231,13 +223,13 @@ We will consider ten categorial variables:
     + 3 = Good
     + 4 = Fair
     + 5 = Poor
-  * `diabetes`:  Has SP ever been told by a doctor or health professional that SP has diabetes or sugar diabetes?
+  * `diabetes`: Has person ever been told by a doctor or health professional that they have diabetes or sugar diabetes?
     + 1 = Yes
     + 2 = No 
     + 3 = Prediabetes
-  * `cholesterol`: an oil-based substance. If concentrations get too high, it puts people at risk of heart diseases
-    + 1 = High cholesterol value
-    + 2 = Low cholesterol value
+  * `cholesterol`: Has person ever been told by a doctor or health professional that their blood cholesterol was high?
+    + 1 = Yes
+    + 2 = No
   * `drink`: In the past 12 months, how often did sample drink any type of alcoholic beverage
     + 1 = Weekly
     + 2 = Monthly
@@ -253,7 +245,7 @@ We will consider ten categorial variables:
     + 4 = $60,000 - $79,999
     + 5 = $80,000 - $99,999
     + 6 = $100,000 or more
-  * `hypertension`: Previously diagnosed as having hypertension
+  * `hypertension`: Has person ever been told by a doctor or health professional that they have hypertension or high blood pressure?
     + 1 = Yes
     + 2 = No
     
@@ -274,26 +266,22 @@ in deciding what variables to consider in downstream analysis.
 summary(hy_df)
 
 ```
-We see that now the `summary()` function gives us counts for each category of these variables rather than the meaningless numerical summaries, like means, it was giving before.
 
 We see that certain variables have a large number of `NA` values; in 
 particular `drink` has `r sum(is.na(hy_df$drink))` 
-`NA` values and `diabetes` has `r sum(is.na(hy_df$diabetes))` 
+`NA` values and `income` has `r sum(is.na(hy_df$income))` 
 `NA` values. Directly removing rows containing missing data is not desirable 
-considering the large number of such rows, so we decided to look more 
+considering the large number of such rows, so we should look more 
 closely at the missing values. Using the 
-[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) again, 
-we found another variable `AlQ_1` (how often did the survey participant drink any type of alcoholic beverage), 
-where 0 means they never drink.
+[Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf), we see that the variable we've chosen for `drink`, `ALQ_1_UNIT` in the originial survey data, seems to be a follow-up question to the earlier variable `AlQ_1`, which asks how often did the survey participant drink any type of alcoholic beverage.  For this first question, a value of 0 means they never drink.
 
-Let's look at the frequency of counts of the variable with 
-function `table()`.
+Let's look at the frequency of counts of this first `AlQ_1` variable with the function `table()`.
 
 ```{r}
 table(dat$ALQ_1)
 ```
 
-Now we see why there are so many missing values for `drink`. 
+There are `r sum(dat$ALQ_1 == 0, na.rm = TRUE)` people who indicated that they never drink.  These individuals would not have answered the following question (`AlQ_1_unit`) to give a frequency of drinking in the past 12 months.  Now we see why there are so many missing values for `drink`. 
 Among these `r sum(is.na(hy_df$drink))` missing values, 
 `r sum(dat$ALQ_1 == 0, na.rm = TRUE)` samples never drink and 
 there are just 
@@ -317,35 +305,23 @@ And we can see only 6 missing values for `drink` are left now.
 summary(hy_df$drink)
 ```
 
-
-```{r}
-dim(hy_df)
-```
-
 ## Adjust data types
 
 From the data summaries above, we can see that there are several 
-categorical variables like `race`, `gender`, `born`, `diet`, `income`, 
-`diabetes`, `bmi`, `drink`, and `smoke`, which are currently being 
-treated as numerical values, but should be treated as factors. Treating the data as numerical instead of categorial could result in problems in the downstream analysis.
+categorical variables like `race`, `gender`, `born`, `diet`, `income`, `diabetes`, `bmi`, `drink`, and `smoke`, which are currently being 
+treated as numerical values (giving means/medians in the summary) but are really categorical variables that should be treated as factors. This is because the categories are simply labeled with numbers.
 
-For example, the linear model `lm()` and generalized linear model `glm()` 
-functions will treat numerically-coded categorical variables as 
-continuous variables, which will give the wrong result. Instead, 
-we want to convert these categorical variables to factors. Before doing 
-this, we want to get a better understanding of exactly what values 
-are stored in the different variables. We refer to the 
+We want to convert these categorical variables to factors using the nummerical values and categoy labels given in the 
 [Variable Codebook](http://nychanes.org/wp-content/uploads/sites/6/2019/01/28283961_NYC-HANES_codebook_Public_V3_011019.pdf) 
-to get the correct mapping of the numerical values 
-to the category labels.
+and shown earlier in this document.
 
 We can use the `factor()` function in base R to convert each 
 variable and assign the correct levels. Any values that are not 
 included in the `levels` argument will get set to `NA` values. 
 We also want to think about creating a natural ordering to the 
 factor levels here: the first level will generally be our 
-reference level in a linear model, so it makes sense to try
-to give them an order that reflects our choice of reference group.  For example, we will want to compare individuals drink weekly, monthly, or yearly to those who never drink, so we order the `drink` variable as `Never`, `Weekly`, `Monthly`, `Yearly` even though the numerical values in that order are 4, 1, 2, 3.
+reference level in a regression model, so it makes sense to try
+to give them an order that reflects our choice of reference group.  For example, we will want to compare individuals who drink weekly, monthly, or yearly to those who never drink, so we order the `drink` variable as `Never`, `Weekly`, `Monthly`, `Yearly` even though the numerical values in that order are 4, 1, 2, 3.
 
 ```{r recodeFactors}
 hy_df$race <- factor(hy_df$race, 
@@ -383,30 +359,44 @@ hy_df$hypertension <-  factor(hy_df$hypertension, levels=c(2,1),
                               labels=c('No','Yes'))
 ```
 
+If we look at a summary of our data set again, we see that now the `summary()` function gives us counts for each category of these variables rather than the meaningless numerical summaries, like means, it was giving before.
+```{r}
+summary(hy_df)
+```
+
+
 
 # Exploratory data analysis
 
-Simple data visualizations give us a first look at 
-the data and provide information about how the different 
+Before doing any modeling, we start with simple data visualizations to look at 
+the data and investigate how the different 
 variables are related to one another. Plots can identify the trends 
 or patterns in the variables of interest and inform the next steps in the data analysis. For our 
-data visualizations, we will mainly use the package `ggplot2`, 
-a powerful tool for data visualization. A link for its cheat sheet is [here]( https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf).
+data visualizations, we will mainly use the package `ggplot2` available as one of the core `tidyverse` packages. A link for its cheat sheet is [here]( https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf).
 
-The type of plot we will make will depend on the type of variable(s) we are plotting.  First, we try to plot one categorical variable (`hypertension`) with 
-one numerical variable (`age`). Since `hypertension` is the categorical variable, we can compare the age distributions between those who are hypertense and those who are not using side-by-side boxplots.  Here the variable on the `x` axis is `hypertension` and the variable on the `y` axis is `age`, which corresponds to the `aes(x=hypertension, y=age)` definition in the `ggplot` aesthetic definition.
+The type of plot we will make will depend on the type of variable(s) we are plotting.  First, let's look at the relationship between `hypertension` (categorical) and `age` (numeric). Since `hypertension` is the categorical variable, we can compare the age distributions between those who are hypertense and those who are not using side-by-side boxplots.  Here the variable on the x-axis is `hypertension` and the variable on the y-axis is `age`, which corresponds to the `aes(x=hypertension, y=age)` definition in the `ggplot` aesthetic definition.
 
-One thing you need to pay attention to is the missing value, which would result in a wrong plot. In the next step, we aim to remove rows containing missing 
-data with the function `drop_na()` in library `tidyr` and store in a new data frame:
+```{r, fig.width=4, fig.height=4}
+p1 <- hy_df %>% 
+        ggplot(aes(x = hypertension, y = age)) +
+          geom_boxplot() + 
+          ggtitle('Distribution of age by hypertension status')
+p1
+```
+
+From this plot, we see that we need to pay attention to the missing values here, since we are getting a boxplot for the missing values.  We can remove all rows from our dataset that containing any missing values with the function `drop_na()` in  `tidyr` library and store in a new data frame:
 
 ```{r}
 hy_p_df <- 
   hy_df %>%
   drop_na()
+
+dim(hy_p_df)
 ```
 
 This will drop all rows which still contain missing values. By checking the dimensions of our new data frame, `hy_p_df`, we see that we retain `r nrow(hy_p_df)` observations with `r ncol(hy_p_df)` different variables.
 
+Now we can make the same plot without missing values:
 
 ```{r, fig.width=4, fig.height=4}
 p1 <- hy_p_df %>% 
@@ -441,7 +431,7 @@ for a categorical variable like `gender`, so we need another plotting method.
 
 The middle and right plots use barplots to look at the 
 relationship between `hypertension` and `gender`. This time it works! The middle plot shows the count of males and females for those with and without hypertension.  The right plot more clearly shows the proportion of males and females within each hypertension group by using the `position='fill'` option in the `geom_bar()` function. The y-axis in the right plot is proportion rather than count. 
-From this visualization, we see that a higher proportion the hypertense individuals are male compared to the non-hypertense individuals.
+From this visualization, we see that a slightly lower proportion of the hypertense individuals are female compared to the non-hypertense individuals.
 
 But are these plots really the right ones for our question of interest?  Rather than comparing the distribution of gender between the hypertension groups, we really want to see whether there is a difference in hypertension rates between gender groups. To do this, we switch the x-axis and y-axis, to show `hypertension` as a 
 function of `gender`, rather than the other way around. 
@@ -458,8 +448,7 @@ p4b <- hy_p_df %>%
 ggarrange(p3b, p4b, ncol=2, nrow=1)
 ```
 
-Now we can compare the distribution of hypertension between males and females.  
-From this visualization we see that a higher proportion of males than females in our dataset have hypertension. 
+Now we can compare the distribution of hypertension between males and females.  From this visualization we see that a slightly higher proportion of males than females in our dataset have hypertension. 
 
 Next, we apply the same visualization methods on other variables to explore relationships between them.
 
@@ -477,7 +466,7 @@ ggarrange(p5, p6, ncol=2, nrow=1)
 
 From the left plot, we see that there are higher proportions of monthly and yearly drinkers in current smokers, and a higher proportion of weekly drinkers in former smokers.  This may imply a potential relationship between smoking and drinking. 
 Additionally, the right plot shows that there is a much higher proportion of
-diabetes, both diagnosed and undiagnosed, in the high cholesterol group compared to the low cholesterol group.  Therefore a relationship also appears to exist between these two variables. 
+diabetes and pre-diabetes in the high cholesterol group compared to the low cholesterol group.  Therefore a relationship also appears to exist between these two variables. 
 
 What if we want to explore a relationship between more than two variables? 
 Suppose we wanted to look at the relationship between BMI, cholesterol level, and smoking status all at the same time.  Since `cholesterol` and `smoking` are both categorical variables, we can divide by the levels of one of these variables, say `smoking`, and then look at plots showing the relationship between the other two variables within each level of `smoking`.
@@ -496,12 +485,9 @@ faceting capability to produce a plot with three panels
 (one panel for each smoking category). Within each panel 
 is a boxplot which characterises the distribution of `bmi` for 
 each cholesterol category within that `smoking` category. We 
-realize that there is a tendency of increasing `bmi` from never 
-smoker to current smoker, and the highest `bmi` values are 
-found in current smokers.
+see that there is a tendency of higher `bmi` among the higher cholesterol individuals in each smoking category, with the different more pronounced in the former and current smokers.
 
-These data visualizations have revealed potential relationships between our variables.  The next step is to choose which variables
-we might include our statistical model in the next section.  
+A through exploratory data analysis is important to get an idea of potential relationships between our variables.  The next step is to choose which variables we might include our statistical model in the next section.  
 
 # Data analysis
 
